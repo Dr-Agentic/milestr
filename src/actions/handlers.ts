@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { ActionContext, DashboardData, Metrics, ParsedArgs, Task, TaskStatus, TaskType } from '../types';
+import type { ActionContext, DashboardData, KPI, Metrics, ParsedArgs, Task, TaskStatus, TaskType, TrendDirection } from '../types';
 import { VALID_STATUSES } from '../types';
 import { CliError, ConflictError } from '../errors';
 import { createBackup, listBackups, restoreBackup } from '../data/backup';
@@ -15,14 +15,14 @@ function ensureType(type: string): TaskType {
   if (type === 'goal' || type === 'milestone' || type === 'initiative' || type === 'task') {
     return type;
   }
-  throw new CliError(`Invalid type: ${type}`);
+  throw new CliError('Invalid type: ' + type);
 }
 
 function ensureStatus(status: string): TaskStatus {
   if (VALID_STATUSES.includes(status as TaskStatus)) {
     return status as TaskStatus;
   }
-  throw new CliError(`Invalid status: ${status}. Valid: ${VALID_STATUSES.join(', ')}`);
+  throw new CliError('Invalid status: ' + status + '. Valid: ' + VALID_STATUSES.join(', '));
 }
 
 function parseProgress(raw: string): number {
@@ -50,10 +50,10 @@ export const actionCreate: ActionHandler = async (ctx, args) => {
     throw new CliError('create requires --id and --title');
   }
   if (data.tasks[id]) {
-    throw new ConflictError(`Task already exists: ${id}`);
+    throw new ConflictError('Task already exists: ' + id);
   }
   if (parent && !data.tasks[parent]) {
-    throw new CliError(`Parent task not found: ${parent}`);
+    throw new CliError('Parent task not found: ' + parent);
   }
 
   data.tasks[id] = {
@@ -82,8 +82,8 @@ export const actionCreate: ActionHandler = async (ctx, args) => {
     cascadeUpdate(data, parent);
   }
 
-  await saveData(ctx.paths, data, ctx.agent, `create task ${id}: ${title}`);
-  log(`Created task: ${id} (${title})`);
+  await saveData(ctx.paths, data, ctx.agent, 'create task ' + id + ': ' + title);
+  log('Created task: ' + id + ' (' + title + ')');
 };
 
 export const actionStatus: ActionHandler = async (ctx, args) => {
@@ -109,13 +109,13 @@ export const actionStatus: ActionHandler = async (ctx, args) => {
   if (note) {
     addActivityLog(data, id, note, ctx.agent);
   }
-  addActivityLog(data, id, `Status: ${oldStatus} → ${status}${note ? ` (${note})` : ''}`, ctx.agent);
+  addActivityLog(data, id, 'Status: ' + oldStatus + ' → ' + status + (note ? ' (' + note + ')' : ''), ctx.agent);
 
   updateParentStatus(data, id);
   cascadeUpdate(data, id);
 
-  await saveData(ctx.paths, data, ctx.agent, `status ${id}: ${oldStatus} → ${status}${note ? ` (${note})` : ''}`);
-  log(`Updated ${id}: ${oldStatus} → ${status}`);
+  await saveData(ctx.paths, data, ctx.agent, 'status ' + id + ': ' + oldStatus + ' → ' + status);
+  log('Updated ' + id + ': ' + oldStatus + ' → ' + status);
 };
 
 export const actionProgress: ActionHandler = async (ctx, args) => {
@@ -137,13 +137,13 @@ export const actionProgress: ActionHandler = async (ctx, args) => {
     task.status = 'ongoing';
   }
 
-  addActivityLog(data, id, `Progress: ${oldProgress}% → ${pct}%`, ctx.agent);
+  addActivityLog(data, id, 'Progress: ' + oldProgress + '% → ' + pct + '%', ctx.agent);
 
   updateParentStatus(data, id);
   cascadeUpdate(data, id);
 
-  await saveData(ctx.paths, data, ctx.agent, `progress ${id}: ${oldProgress}% → ${pct}%`);
-  log(`Updated ${id}: ${oldProgress}% → ${pct}%`);
+  await saveData(ctx.paths, data, ctx.agent, 'progress ' + id + ': ' + oldProgress + '% → ' + pct + '%');
+  log('Updated ' + id + ': ' + oldProgress + '% → ' + pct + '%');
 };
 
 export const actionTitle: ActionHandler = async (ctx, args) => {
@@ -159,9 +159,9 @@ export const actionTitle: ActionHandler = async (ctx, args) => {
   const oldTitle = task.title;
   task.title = title;
 
-  addActivityLog(data, id, `Title changed: "${oldTitle}" → "${title}"`, ctx.agent);
-  await saveData(ctx.paths, data, ctx.agent, `title ${id}: "${oldTitle}" → "${title}"`);
-  log(`Updated ${id} title`);
+  addActivityLog(data, id, 'Title changed: "' + oldTitle + '" → "' + title + '"', ctx.agent);
+  await saveData(ctx.paths, data, ctx.agent, 'title ' + id + ': "' + oldTitle + '" → "' + title + '"');
+  log('Updated ' + id + ' title');
 };
 
 export const actionDue: ActionHandler = async (ctx, args) => {
@@ -176,9 +176,9 @@ export const actionDue: ActionHandler = async (ctx, args) => {
   const oldDue = task.dueDate;
   task.dueDate = due;
 
-  addActivityLog(data, id, `Due date: ${oldDue ?? 'none'} → ${due}`, ctx.agent);
-  await saveData(ctx.paths, data, ctx.agent, `due ${id}: ${oldDue ?? 'none'} → ${due}`);
-  log(`Updated ${id} due date: ${due}`);
+  addActivityLog(data, id, 'Due date: ' + (oldDue ?? 'none') + ' → ' + due, ctx.agent);
+  await saveData(ctx.paths, data, ctx.agent, 'due ' + id + ': ' + (oldDue ?? 'none') + ' → ' + due);
+  log('Updated ' + id + ' due date: ' + due);
 };
 
 export const actionDelete: ActionHandler = async (ctx, args) => {
@@ -194,7 +194,7 @@ export const actionDelete: ActionHandler = async (ctx, args) => {
 
   const task = getTaskOrThrow(data, id);
   if (task.children.length > 0) {
-    throw new CliError(`Cannot delete ${id}: has children. Delete children first.`);
+    throw new CliError('Cannot delete ' + id + ': has children. Delete children first.');
   }
 
   const parentId = task.parent;
@@ -207,8 +207,8 @@ export const actionDelete: ActionHandler = async (ctx, args) => {
     cascadeUpdate(data, parentId);
   }
 
-  await saveData(ctx.paths, data, ctx.agent, `delete task ${id}`);
-  log(`Deleted task: ${id}`);
+  await saveData(ctx.paths, data, ctx.agent, 'delete task ' + id);
+  log('Deleted task: ' + id);
 };
 
 export const actionRecalc: ActionHandler = async (ctx, args) => {
@@ -222,8 +222,8 @@ export const actionRecalc: ActionHandler = async (ctx, args) => {
   recalculateProgress(data, id);
   cascadeUpdate(data, id);
 
-  await saveData(ctx.paths, data, ctx.agent, `recalc ${id}`);
-  log(`Recalculated ${id}`);
+  await saveData(ctx.paths, data, ctx.agent, 'recalc ' + id);
+  log('Recalculated ' + id);
 };
 
 export const actionView: ActionHandler = async (ctx, args) => {
@@ -235,7 +235,7 @@ export const actionView: ActionHandler = async (ctx, args) => {
   }
 
   const task = getTaskOrThrow(data, id);
-  console.log(`\n${JSON.stringify(task, null, 2)}`);
+  console.log('\n' + JSON.stringify(task, null, 2));
 };
 
 export const actionList: ActionHandler = async (ctx, args) => {
@@ -255,9 +255,9 @@ export const actionList: ActionHandler = async (ctx, args) => {
     tasks = tasks.filter((task) => task.parent === parent);
   }
 
-  console.log(`\nFound ${tasks.length} tasks:\n`);
+  console.log('\nFound ' + tasks.length + ' tasks:\n');
   for (const task of tasks) {
-    console.log(`  ${taskIcon(task)} ${task.id} | ${task.status.padEnd(12)} | ${String(task.progress).padStart(3)}% | ${task.title}`);
+    console.log('  ' + taskIcon(task) + ' ' + task.id + ' | ' + task.status.padEnd(12) + ' | ' + String(task.progress).padStart(3) + '% | ' + task.title);
   }
   console.log('');
 };
@@ -265,7 +265,7 @@ export const actionList: ActionHandler = async (ctx, args) => {
 export const actionBackup: ActionHandler = async (ctx) => {
   await loadData(ctx.paths);
   const name = await createBackup(ctx.paths);
-  log(`Backup complete: ${name}`);
+  log('Backup complete: ' + name);
 };
 
 export const actionRestore: ActionHandler = async (ctx, args) => {
@@ -278,13 +278,13 @@ export const actionRestore: ActionHandler = async (ctx, args) => {
   try {
     restored = await restoreBackup(ctx.paths, timestamp);
   } catch (error) {
-    throw new CliError(`Backup not found or unreadable: ${timestamp} (${(error as Error).message})`);
+    throw new CliError('Backup not found or unreadable: ' + timestamp + ' (' + (error as Error).message + ')');
   }
 
   validateData(restored);
   const html = exportDashboardHtml(restored);
   await fs.writeFile(ctx.paths.htmlFile, html, 'utf8');
-  log(`Restored from backup: ${timestamp}`);
+  log('Restored from backup: ' + timestamp);
 };
 
 export const actionListBackups: ActionHandler = async (ctx) => {
@@ -296,7 +296,7 @@ export const actionListBackups: ActionHandler = async (ctx) => {
 
   console.log('\nAvailable backups:\n');
   for (const backup of backups) {
-    console.log(`  ${backup.id}  ${backup.mtime}`);
+    console.log('  ' + backup.id + '  ' + backup.mtime);
   }
   console.log('');
 };
@@ -319,15 +319,18 @@ export const actionMetrics: ActionHandler = async (ctx) => {
   }
 
   console.log('\n📊 Dashboard Metrics:\n');
-  console.log(`  Total tasks: ${metrics.total}`);
-  console.log(`  Completed: ${metrics.completed}`);
+  console.log('  Total tasks: ' + metrics.total);
+  console.log('  Completed: ' + metrics.completed);
   console.log('  \n  By Status:');
   for (const [status, count] of Object.entries(metrics.byStatus)) {
-    console.log(`    ${status}: ${count}`);
+    console.log('    ' + status + ': ' + count);
   }
   console.log('  \n  By Type:');
   for (const [type, count] of Object.entries(metrics.byType)) {
-    console.log(`    ${type}: ${count}`);
+    console.log('    ' + type + ': ' + count);
+  }
+  if (data.kpis) {
+    console.log('\n  KPIs: ' + Object.keys(data.kpis).length);
   }
   console.log('');
 };
@@ -337,6 +340,90 @@ export const actionExport: ActionHandler = async (ctx) => {
   const html = exportDashboardHtml(data);
   await fs.writeFile(path.join(ctx.paths.dashboardDir, 'dashboard.html'), html, 'utf8');
   log('Exported dashboard.html');
+};
+
+// --- KPI Actions ---
+
+export const actionCreateKpi: ActionHandler = async (ctx, args) => {
+  const data = await loadData(ctx.paths);
+  const id = typeof args.id === 'string' ? args.id : undefined;
+  const title = typeof args.title === 'string' ? args.title : undefined;
+  const rawValue = args.value;
+  const value: string | number = typeof rawValue === 'string' || typeof rawValue === 'number' ? rawValue : '0';
+  const unit = typeof args.unit === 'string' ? args.unit : undefined;
+  const trend = typeof args.trend === 'string' ? args.trend as TrendDirection : undefined;
+  const source = typeof args.source === 'string' ? args.source : undefined;
+  const icon = typeof args.icon === 'string' ? args.icon : '📊';
+
+  if (!id || !title) {
+    throw new CliError('create-kpi requires --id and --title');
+  }
+
+  if (!data.kpis) {
+    data.kpis = {};
+  }
+  if (data.kpis[id]) {
+    throw new ConflictError('KPI already exists: ' + id);
+  }
+
+  data.kpis[id] = {
+    id,
+    title,
+    value,
+    unit,
+    trend,
+    source,
+    icon,
+    lastUpdated: new Date().toISOString()
+  };
+
+  await saveData(ctx.paths, data, ctx.agent, 'create KPI ' + id + ': ' + title + ' = ' + value + (unit ? ' ' + unit : ''));
+  log('Created KPI: ' + id + ' (' + title + ')');
+};
+
+export const actionUpdateKpi: ActionHandler = async (ctx, args) => {
+  const data = await loadData(ctx.paths);
+  const id = typeof args.id === 'string' ? args.id : undefined;
+  const rawValue = args.value;
+  const value: string | number | undefined = typeof rawValue === 'string' || typeof rawValue === 'number' ? rawValue : undefined;
+  const unit = typeof args.unit === 'string' ? args.unit : undefined;
+  const trend = typeof args.trend === 'string' ? args.trend as TrendDirection : undefined;
+  const source = typeof args.source === 'string' ? args.source : undefined;
+  const icon = typeof args.icon === 'string' ? args.icon : undefined;
+
+  if (!id) {
+    throw new CliError('update-kpi requires --id');
+  }
+
+  if (!data.kpis || !data.kpis[id]) {
+    throw new CliError('KPI not found: ' + id);
+  }
+
+  const kpi = data.kpis[id];
+  const oldValue = kpi.value;
+
+  if (value !== undefined) kpi.value = value;
+  if (unit !== undefined) kpi.unit = unit;
+  if (trend !== undefined) kpi.trend = trend;
+  if (source !== undefined) kpi.source = source;
+  if (icon !== undefined) kpi.icon = icon;
+  kpi.lastUpdated = new Date().toISOString();
+
+  await saveData(ctx.paths, data, ctx.agent, 'update KPI ' + id + ': ' + oldValue + ' → ' + kpi.value);
+  log('Updated KPI ' + id + ': ' + oldValue + ' → ' + kpi.value);
+};
+
+export const actionListKpis: ActionHandler = async (ctx) => {
+  const data = await loadData(ctx.paths);
+  const kpis = data.kpis ? Object.values(data.kpis) : [];
+
+  console.log('\nFound ' + kpis.length + ' KPIs:\n');
+  for (const kpi of kpis) {
+    const trend = kpi.trend ? ' (' + (kpi.trend === 'up' ? '↑' : kpi.trend === 'down' ? '↓' : '→') + ')' : '';
+    const source = kpi.source ? ' [' + kpi.source + ']' : '';
+    console.log('  ' + kpi.icon + ' ' + kpi.id + ' | ' + kpi.value + (kpi.unit ? ' ' + kpi.unit : '') + trend + ' | ' + kpi.title + source);
+  }
+  console.log('');
 };
 
 export const ACTIONS: Record<string, ActionHandler> = {
@@ -354,5 +441,8 @@ export const ACTIONS: Record<string, ActionHandler> = {
   restore: actionRestore,
   backups: actionListBackups,
   metrics: actionMetrics,
-  export: actionExport
+  export: actionExport,
+  'create-kpi': actionCreateKpi,
+  'update-kpi': actionUpdateKpi,
+  'list-kpis': actionListKpis
 };

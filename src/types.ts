@@ -4,6 +4,8 @@ export const VALID_TYPES = ['goal', 'milestone', 'initiative', 'task'] as const;
 export type TaskStatus = (typeof VALID_STATUSES)[number];
 export type TaskType = (typeof VALID_TYPES)[number];
 
+export type TrendDirection = 'up' | 'down' | 'neutral';
+
 export interface ActivityLogEntry {
   date: string;
   agent?: string;
@@ -22,6 +24,17 @@ export interface Task {
   parent: string | null;
   children: string[];
   activityLog: ActivityLogEntry[];
+}
+
+export interface KPI {
+  id: string;
+  title: string;
+  value: string | number;
+  unit?: string;
+  trend?: TrendDirection;
+  source?: string;
+  icon: string;
+  lastUpdated: string;
 }
 
 export interface DashboardMeta {
@@ -45,6 +58,7 @@ export interface DashboardData {
   meta: DashboardMeta;
   root: DashboardRoot;
   tasks: Record<string, Task>;
+  kpis?: Record<string, KPI>;
 }
 
 export interface ParsedArgs {

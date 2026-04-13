@@ -51,38 +51,46 @@ export function parseArgs(argv: string[]): ParsedArgs {
 }
 
 function printHelp(): void {
-  console.log(`
-RCS X Dashboard Manager (TypeScript)
-
-Usage: node dist/index.js <action> [options]
-
-REQUIRED: --agent <name>   Track who is executing the command
-                         (e.g., --agent teggy, --agent morsy, --agent devvy)
-
-Actions:
-  create --id <id> --title <title> [--type task] [--parent <id>] [--due YYYY-MM-DD] [--icon emoji]
-  status <id> <status> [note]           Status: not_started, analyzing, ongoing, done, blocked
-  progress <id> <0-100>                  Set progress percentage
-  title <id> <new title>                 Rename task
-  due <id> <YYYY-MM-DD>                  Set due date
-  delete <id>                            Delete task (no children allowed)
-  recalc <id>                            Recalculate parent progress from children
-  view <id>                              Show task details
-  list [--type type] [--status status]   List tasks with filters
-  backup                                 Create backup
-  restore <timestamp>                    Restore from backup
-  backups                                List available backups
-  metrics                                Show dashboard statistics
-  export                                 Export HTML dashboard (Timeline/Kanban/List views)
-
-Examples:
-  node dist/index.js --agent teggy status I1.2 ongoing "Working on it"
-  node dist/index.js --agent devvy create --id I1.4 --title "New Feature" --type initiative --parent M1
-  node dist/index.js --agent morsy progress I1.2 50
-  node dist/index.js --agent teggy recalc M1
-  node dist/index.js --agent morsy restore 2026-02-21-15-30-00
-  node dist/index.js --agent teggy export
-`);
+  console.log([
+    '',
+    'Milestr Dashboard Manager (TypeScript)',
+    '',
+    'Usage: npm run dev -- --agent <name> <action> [options]',
+    '',
+    'REQUIRED: --agent <name>   Track who is executing the command',
+    '                         (e.g., --agent teggy, --agent morsy, --agent devvy)',
+    '',
+    'Task Actions:',
+    '  create --id <id> --title <title> [--type task|initiative|milestone|goal] [--parent <id>] [--due YYYY-MM-DD] [--icon emoji]',
+    '  status <id> <status> [note]           Status: not_started, analyzing, ongoing, done, blocked',
+    '  progress <id> <0-100>                  Set progress percentage',
+    '  title <id> <new title>                 Rename task',
+    '  due <id> <YYYY-MM-DD>                  Set due date',
+    '  delete <id>                            Delete task (no children allowed)',
+    '  recalc <id>                            Recalculate parent progress from children',
+    '  view <id>                              Show task details',
+    '  list [--type type] [--status status]   List tasks with filters',
+    '',
+    'KPI Actions:',
+    '  create-kpi --id <id> --title <title> [--value <val>] [--unit <unit>] [--trend up|down|neutral] [--source <src>] [--icon emoji]',
+    '  update-kpi --id <id> [--value <val>] [--unit <unit>] [--trend up|down|neutral] [--source <src>]',
+    '  list-kpis                              List all KPIs',
+    '',
+    'Dashboard Actions:',
+    '  backup                                 Create backup',
+    '  restore <timestamp>                    Restore from backup',
+    '  backups                                List available backups',
+    '  metrics                                Show dashboard statistics',
+    '  export                                 Export HTML dashboard (KPIs/Timeline/Kanban/List views)',
+    '',
+    'Examples:',
+    '  npm run dev -- --agent teggy status I1.2 ongoing "Working on it"',
+    '  npm run dev -- --agent devvy create --id I1.4 --title "New Feature" --type initiative --parent M1',
+    '  npm run dev -- --agent teggy create-kpi --id kpi-signups --title "Weekly Sign-ups" --value 0 --unit users --source "Email inbox" --icon "people"',
+    '  npm run dev -- --agent teggy update-kpi --id kpi-signups --value 12 --trend up',
+    '  npm run dev -- --agent teggy list-kpis',
+    ''
+  ].join('\n'));
 }
 
 export async function run(argv: string[]): Promise<number> {
@@ -104,7 +112,7 @@ export async function run(argv: string[]): Promise<number> {
 
   const handler = ACTIONS[action];
   if (!handler) {
-    throw new CliError(`Unknown action: ${action}`);
+    throw new CliError('Unknown action: ' + action);
   }
 
   args._ = rest;
@@ -125,7 +133,7 @@ async function main(): Promise<void> {
     process.exit(exitCode);
   } catch (error) {
     const message = error instanceof DashboardError ? error.message : (error as Error).message;
-    console.error(`[dashboard] ERROR: ${message}`);
+    console.error('[dashboard] ERROR: ' + message);
     process.exit(1);
   }
 }

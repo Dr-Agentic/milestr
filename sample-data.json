@@ -143,5 +143,27 @@
       "children": [],
       "activityLog": []
     }
+  },
+  "kpis": {
+    "kpi-users": {
+      "id": "kpi-users",
+      "title": "Active Users",
+      "value": 0,
+      "unit": "users",
+      "trend": "neutral",
+      "source": "Email inbox",
+      "icon": "👥",
+      "lastUpdated": "2026-04-12T00:00:00.000Z"
+    },
+    "kpi-mrr": {
+      "id": "kpi-mrr",
+      "title": "Monthly Recurring Revenue",
+      "value": 0,
+      "unit": "USD",
+      "trend": "neutral",
+      "source": "Stripe",
+      "icon": "💰",
+      "lastUpdated": "2026-04-12T00:00:00.000Z"
+    }
   }
 }
