@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "lastUpdated": "2026-04-12T00:00:00.000Z",
+    "updateFrequency": "hourly",
+    "version": "1.1"
+  },
+  "root": {
+    "id": "ROOT",
+    "title": "AI Agent Project",
+    "type": "goal",
+    "status": "ongoing",
+    "dueDate": null,
+    "icon": "🎯",
+    "parent": null,
+    "children": [
+      "M1",
+      "M2",
+      "M3"
+    ]
+  },
+  "tasks": {
+    "ROOT": {
+      "id": "ROOT",
+      "title": "AI Agent Project",
+      "subtitle": "Example goal structure",
+      "type": "goal",
+      "status": "ongoing",
+      "progress": 33,
+      "dueDate": null,
+      "icon": "🎯",
+      "parent": null,
+      "children": [
+        "M1",
+        "M2",
+        "M3"
+      ],
+      "activityLog": [
+        {
+          "date": "2026-04-12T00:00:00Z",
+          "agent": "system",
+          "note": "Project initialized with sample data"
+        }
+      ]
+    },
+    "M1": {
+      "id": "M1",
+      "title": "Foundation",
+      "subtitle": "Core infrastructure and auth",
+      "type": "milestone",
+      "status": "done",
+      "progress": 100,
+      "dueDate": "2026-02-01",
+      "icon": "🏗",
+      "parent": "ROOT",
+      "children": [
+        "I1.1",
+        "I1.2"
+      ],
+      "activityLog": [
+        {
+          "date": "2026-02-01T00:00:00Z",
+          "agent": "devvy",
+          "note": "Milestone complete"
+        }
+      ]
+    },
+    "M2": {
+      "id": "M2",
+      "title": "Beta Launch",
+      "subtitle": "First users and feedback loop",
+      "type": "milestone",
+      "status": "ongoing",
+      "progress": 50,
+      "dueDate": "2026-05-01",
+      "icon": "🚀",
+      "parent": "ROOT",
+      "children": [
+        "I2.1"
+      ],
+      "activityLog": []
+    },
+    "M3": {
+      "id": "M3",
+      "title": "Scale",
+      "subtitle": "Growth and monetization",
+      "type": "milestone",
+      "status": "not_started",
+      "progress": 0,
+      "dueDate": "2026-12-31",
+      "icon": "📈",
+      "parent": "ROOT",
+      "children": [],
+      "activityLog": []
+    },
+    "I1.1": {
+      "id": "I1.1",
+      "title": "User Authentication",
+      "subtitle": "Sign up, login, password reset",
+      "type": "initiative",
+      "status": "done",
+      "progress": 100,
+      "dueDate": "2026-01-15",
+      "icon": "🔐",
+      "parent": "M1",
+      "children": [],
+      "activityLog": [
+        {
+          "date": "2026-01-15T00:00:00Z",
+          "agent": "devvy",
+          "note": "Auth complete"
+        }
+      ]
+    },
+    "I1.2": {
+      "id": "I1.2",
+      "title": "Core API",
+      "subtitle": "REST API for main entities",
+      "type": "initiative",
+      "status": "done",
+      "progress": 100,
+      "dueDate": "2026-02-01",
+      "icon": "⚙️",
+      "parent": "M1",
+      "children": [],
+      "activityLog": [
+        {
+          "date": "2026-02-01T00:00:00Z",
+          "agent": "devvy",
+          "note": "API complete"
+        }
+      ]
+    },
+    "I2.1": {
+      "id": "I2.1",
+      "title": "Beta Onboarding",
+      "subtitle": "First 10 beta users",
+      "type": "initiative",
+      "status": "ongoing",
+      "progress": 50,
+      "dueDate": "2026-05-01",
+      "icon": "🙋",
+      "parent": "M2",
+      "children": [],
+      "activityLog": []
+    }
+  }
+}

@@ -1,0 +1,6 @@
+data/
+dashboard.html
+node_modules/
+*.log
+*.backup.*
+*.lock
