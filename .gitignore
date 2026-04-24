@@ -2,6 +2,7 @@
 /dashboard.html
 /site/
 /dist/
+/coverage/
 .milestr-cloudflare.json
 .DS_Store
 node_modules/

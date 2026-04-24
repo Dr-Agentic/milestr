@@ -8,13 +8,15 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/index.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
+    "@vitest/coverage-v8": "^3.2.4",
     "tsx": "^4.19.2",
     "typescript": "^5.8.2",
     "vitest": "^3.0.8",
