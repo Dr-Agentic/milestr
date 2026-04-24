@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-04-24T23:43:12.179Z",
+    "lastUpdated": "2026-04-24T23:42:42.313Z",
     "updateFrequency": "daily",
     "version": "1.1"
   },
@@ -54,7 +54,7 @@
       "subtitle": "",
       "type": "milestone",
       "status": "ongoing",
-      "progress": 17,
+      "progress": 0,
       "dueDate": "2026-05-15",
       "icon": "🎤",
       "parent": null,
@@ -164,18 +164,13 @@
       "title": "Pre-align Before Key Meetings",
       "subtitle": "",
       "type": "initiative",
-      "status": "ongoing",
-      "progress": 30,
+      "status": "not_started",
+      "progress": 0,
       "dueDate": "2026-05-01",
       "icon": "🤝",
       "parent": "M1",
       "children": [],
       "activityLog": [
-        {
-          "date": "2026-04-24T23:42:58.092Z",
-          "agent": "career-agent",
-          "note": "Progress: 0% → 30%"
-        },
         {
           "date": "2026-04-24T23:38:40.643Z",
           "agent": "career-agent",
@@ -189,17 +184,12 @@
       "subtitle": "",
       "type": "initiative",
       "status": "ongoing",
-      "progress": 20,
+      "progress": 0,
       "dueDate": "2026-04-30",
       "icon": "🤐",
       "parent": "M1",
       "children": [],
       "activityLog": [
-        {
-          "date": "2026-04-24T23:43:12.177Z",
-          "agent": "career-agent",
-          "note": "Progress: 0% → 20%"
-        },
         {
           "date": "2026-04-24T23:40:25.319Z",
           "agent": "career-agent",

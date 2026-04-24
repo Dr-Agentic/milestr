@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-04-24T23:43:12.179Z",
+    "lastUpdated": "2026-04-24T23:41:26.927Z",
     "updateFrequency": "daily",
     "version": "1.1"
   },
@@ -54,7 +54,7 @@
       "subtitle": "",
       "type": "milestone",
       "status": "ongoing",
-      "progress": 17,
+      "progress": 0,
       "dueDate": "2026-05-15",
       "icon": "🎤",
       "parent": null,
@@ -82,8 +82,7 @@
       "icon": "🏰",
       "parent": null,
       "children": [
-        "I3.1",
-        "I3.2"
+        "I3.1"
       ],
       "activityLog": [
         {
@@ -104,8 +103,7 @@
       "icon": "💼",
       "parent": null,
       "children": [
-        "I4.1",
-        "I4.2"
+        "I4.1"
       ],
       "activityLog": [
         {
@@ -146,11 +144,7 @@
       "dueDate": "2027-02-28",
       "icon": "🌐",
       "parent": null,
-      "children": [
-        "I5.2",
-        "I5.1",
-        "I5.3"
-      ],
+      "children": [],
       "activityLog": [
         {
           "date": "2026-04-24T23:38:22.448Z",
@@ -164,18 +158,13 @@
       "title": "Pre-align Before Key Meetings",
       "subtitle": "",
       "type": "initiative",
-      "status": "ongoing",
-      "progress": 30,
+      "status": "not_started",
+      "progress": 0,
       "dueDate": "2026-05-01",
       "icon": "🤝",
       "parent": "M1",
       "children": [],
       "activityLog": [
-        {
-          "date": "2026-04-24T23:42:58.092Z",
-          "agent": "career-agent",
-          "note": "Progress: 0% → 30%"
-        },
         {
           "date": "2026-04-24T23:38:40.643Z",
           "agent": "career-agent",
@@ -189,17 +178,12 @@
       "subtitle": "",
       "type": "initiative",
       "status": "ongoing",
-      "progress": 20,
+      "progress": 0,
       "dueDate": "2026-04-30",
       "icon": "🤐",
       "parent": "M1",
       "children": [],
       "activityLog": [
-        {
-          "date": "2026-04-24T23:43:12.177Z",
-          "agent": "career-agent",
-          "note": "Progress: 0% → 20%"
-        },
         {
           "date": "2026-04-24T23:40:25.319Z",
           "agent": "career-agent",
@@ -293,101 +277,6 @@
       "activityLog": [
         {
           "date": "2026-04-24T23:41:26.926Z",
-          "agent": "career-agent",
-          "note": "Task created"
-        }
-      ]
-    },
-    "I3.2": {
-      "id": "I3.2",
-      "title": "Board-Level Communication",
-      "subtitle": "",
-      "type": "initiative",
-      "status": "not_started",
-      "progress": 0,
-      "dueDate": "2026-09-15",
-      "icon": "🏛️",
-      "parent": "M3",
-      "children": [],
-      "activityLog": [
-        {
-          "date": "2026-04-24T23:41:50.192Z",
-          "agent": "career-agent",
-          "note": "Task created"
-        }
-      ]
-    },
-    "I5.2": {
-      "id": "I5.2",
-      "title": "Ecosystem Partners",
-      "subtitle": "",
-      "type": "initiative",
-      "status": "not_started",
-      "progress": 0,
-      "dueDate": "2027-02-15",
-      "icon": "🔗",
-      "parent": "M5",
-      "children": [],
-      "activityLog": [
-        {
-          "date": "2026-04-24T23:42:07.314Z",
-          "agent": "career-agent",
-          "note": "Task created"
-        }
-      ]
-    },
-    "I5.1": {
-      "id": "I5.1",
-      "title": "Cross-Functional Sponsors",
-      "subtitle": "",
-      "type": "initiative",
-      "status": "not_started",
-      "progress": 0,
-      "dueDate": "2026-12-31",
-      "icon": "🤝",
-      "parent": "M5",
-      "children": [],
-      "activityLog": [
-        {
-          "date": "2026-04-24T23:42:10.523Z",
-          "agent": "career-agent",
-          "note": "Task created"
-        }
-      ]
-    },
-    "I4.2": {
-      "id": "I4.2",
-      "title": "Executive Presence in Deals",
-      "subtitle": "",
-      "type": "initiative",
-      "status": "not_started",
-      "progress": 0,
-      "dueDate": "2026-11-15",
-      "icon": "🎯",
-      "parent": "M4",
-      "children": [],
-      "activityLog": [
-        {
-          "date": "2026-04-24T23:42:28.670Z",
-          "agent": "career-agent",
-          "note": "Task created"
-        }
-      ]
-    },
-    "I5.3": {
-      "id": "I5.3",
-      "title": "Ecosystem Partners",
-      "subtitle": "",
-      "type": "initiative",
-      "status": "not_started",
-      "progress": 0,
-      "dueDate": "2027-02-15",
-      "icon": "🔗",
-      "parent": "M5",
-      "children": [],
-      "activityLog": [
-        {
-          "date": "2026-04-24T23:42:42.311Z",
           "agent": "career-agent",
           "note": "Task created"
         }
