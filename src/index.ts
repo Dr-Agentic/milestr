@@ -58,7 +58,7 @@ function printHelp(): void {
     'Usage: npm run dev -- --agent <name> <action> [options]',
     '',
     'REQUIRED: --agent <name>   Track who is executing the command',
-    '                         (e.g., --agent teggy, --agent morsy, --agent devvy)',
+    '                         (e.g., --agent planner, --agent builder, --agent operator)',
     '',
     'Task Actions:',
     '  create --id <id> --title <title> [--type task|initiative|milestone|goal] [--parent <id>] [--due YYYY-MM-DD] [--icon emoji]',
@@ -85,11 +85,11 @@ function printHelp(): void {
     '  publish                                Publish the static dashboard to Cloudflare Pages',
     '',
     'Examples:',
-    '  npm run dev -- --agent teggy status I1.2 ongoing "Working on it"',
-    '  npm run dev -- --agent devvy create --id I1.4 --title "New Feature" --type initiative --parent M1',
-    '  npm run dev -- --agent teggy create-kpi --id kpi-signups --title "Weekly Sign-ups" --value 0 --unit users --source "Email inbox" --icon "people"',
-    '  npm run dev -- --agent teggy update-kpi --id kpi-signups --value 12 --trend up',
-    '  npm run dev -- --agent teggy list-kpis',
+    '  npm run dev -- --agent planner status I1.2 ongoing "Working on it"',
+    '  npm run dev -- --agent builder create --id I1.4 --title "New Feature" --type initiative --parent M1',
+    '  npm run dev -- --agent operator create-kpi --id kpi-signups --title "Weekly Sign-ups" --value 0 --unit users --source "Product analytics" --icon "people"',
+    '  npm run dev -- --agent operator update-kpi --id kpi-signups --value 12 --trend up',
+    '  npm run dev -- --agent operator list-kpis',
     ''
   ].join('\n'));
 }
@@ -101,7 +101,7 @@ export async function run(argv: string[]): Promise<number> {
   const paths = resolvePaths();
 
   if (!args.agent && action !== 'help' && action !== undefined) {
-    throw new CliError('--agent is required (e.g., --agent teggy, --agent morsy, --agent devvy)');
+    throw new CliError('--agent is required (e.g., --agent planner, --agent builder, --agent operator)');
   }
 
   await logCalled(paths, agent, action, args);

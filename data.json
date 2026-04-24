@@ -1,12 +1,12 @@
 {
   "meta": {
-    "lastUpdated": "2026-04-13T02:47:41.771Z",
-    "updateFrequency": "hourly",
+    "lastUpdated": "2026-04-24T00:00:00.000Z",
+    "updateFrequency": "daily",
     "version": "1.1"
   },
   "root": {
     "id": "ROOT",
-    "title": "AI Agent Project",
+    "title": "Sample Product Dashboard",
     "type": "goal",
     "status": "ongoing",
     "dueDate": null,
@@ -21,11 +21,11 @@
   "tasks": {
     "ROOT": {
       "id": "ROOT",
-      "title": "AI Agent Project",
-      "subtitle": "Example goal structure",
+      "title": "Sample Product Dashboard",
+      "subtitle": "Generic demo workspace",
       "type": "goal",
       "status": "ongoing",
-      "progress": 33,
+      "progress": 50,
       "dueDate": null,
       "icon": "🎯",
       "parent": null,
@@ -36,7 +36,7 @@
       ],
       "activityLog": [
         {
-          "date": "2026-04-12T00:00:00Z",
+          "date": "2026-04-24T00:00:00Z",
           "agent": "system",
           "note": "Project initialized with sample data"
         }
@@ -44,13 +44,13 @@
     },
     "M1": {
       "id": "M1",
-      "title": "Foundation",
-      "subtitle": "Core infrastructure and auth",
+      "title": "Core Setup",
+      "subtitle": "Baseline architecture and workflow",
       "type": "milestone",
       "status": "done",
       "progress": 100,
-      "dueDate": "2026-02-01",
-      "icon": "🏗",
+      "dueDate": "2026-03-15",
+      "icon": "🏗️",
       "parent": "ROOT",
       "children": [
         "I1.1",
@@ -58,20 +58,20 @@
       ],
       "activityLog": [
         {
-          "date": "2026-02-01T00:00:00Z",
-          "agent": "devvy",
+          "date": "2026-03-15T00:00:00Z",
+          "agent": "builder",
           "note": "Milestone complete"
         }
       ]
     },
     "M2": {
       "id": "M2",
-      "title": "Beta Launch",
-      "subtitle": "First users and feedback loop",
+      "title": "Pilot Release",
+      "subtitle": "Gather early feedback from a small cohort",
       "type": "milestone",
       "status": "ongoing",
       "progress": 50,
-      "dueDate": "2026-05-01",
+      "dueDate": "2026-06-01",
       "icon": "🚀",
       "parent": "ROOT",
       "children": [
@@ -81,12 +81,12 @@
     },
     "M3": {
       "id": "M3",
-      "title": "Scale",
-      "subtitle": "Growth and monetization",
+      "title": "Scale Up",
+      "subtitle": "Prepare for broader usage and reporting",
       "type": "milestone",
       "status": "not_started",
       "progress": 0,
-      "dueDate": "2026-12-31",
+      "dueDate": "2026-09-30",
       "icon": "📈",
       "parent": "ROOT",
       "children": [],
@@ -94,51 +94,51 @@
     },
     "I1.1": {
       "id": "I1.1",
-      "title": "User Authentication",
-      "subtitle": "Sign up, login, password reset",
+      "title": "Workspace Model",
+      "subtitle": "Define the project and milestone schema",
       "type": "initiative",
       "status": "done",
       "progress": 100,
-      "dueDate": "2026-01-15",
-      "icon": "🔐",
+      "dueDate": "2026-03-01",
+      "icon": "🧩",
       "parent": "M1",
       "children": [],
       "activityLog": [
         {
-          "date": "2026-01-15T00:00:00Z",
-          "agent": "devvy",
-          "note": "Auth complete"
+          "date": "2026-03-01T00:00:00Z",
+          "agent": "builder",
+          "note": "Model finalized"
         }
       ]
     },
     "I1.2": {
       "id": "I1.2",
-      "title": "Core API",
-      "subtitle": "REST API for main entities",
+      "title": "Dashboard Export",
+      "subtitle": "Render the static status page",
       "type": "initiative",
       "status": "done",
       "progress": 100,
-      "dueDate": "2026-02-01",
-      "icon": "⚙️",
+      "dueDate": "2026-03-15",
+      "icon": "🖥️",
       "parent": "M1",
       "children": [],
       "activityLog": [
         {
-          "date": "2026-02-01T00:00:00Z",
-          "agent": "devvy",
-          "note": "API complete"
+          "date": "2026-03-15T00:00:00Z",
+          "agent": "builder",
+          "note": "Export flow complete"
         }
       ]
     },
     "I2.1": {
       "id": "I2.1",
-      "title": "Beta Onboarding",
-      "subtitle": "First 10 beta users",
+      "title": "Pilot Feedback Loop",
+      "subtitle": "Track feedback, fixes, and follow-ups",
       "type": "initiative",
       "status": "ongoing",
       "progress": 50,
-      "dueDate": "2026-05-01",
-      "icon": "🙋",
+      "dueDate": "2026-06-01",
+      "icon": "📝",
       "parent": "M2",
       "children": [],
       "activityLog": []
@@ -147,23 +147,23 @@
   "kpis": {
     "kpi-users": {
       "id": "kpi-users",
-      "title": "Active Users",
-      "value": "7",
+      "title": "Weekly Active Users",
+      "value": 12,
       "unit": "users",
       "trend": "up",
-      "source": "Email inbox",
-      "icon": "people",
-      "lastUpdated": "2026-04-13T02:47:40.288Z"
+      "source": "Product analytics",
+      "icon": "👥",
+      "lastUpdated": "2026-04-24T00:00:00.000Z"
     },
-    "kpi-mrr": {
-      "id": "kpi-mrr",
-      "title": "MRR",
-      "value": "0",
-      "unit": "USD",
+    "kpi-satisfaction": {
+      "id": "kpi-satisfaction",
+      "title": "Feedback Score",
+      "value": 4.3,
+      "unit": "/5",
       "trend": "neutral",
-      "source": "Stripe",
-      "icon": "money",
-      "lastUpdated": "2026-04-13T02:47:41.770Z"
+      "source": "Survey summary",
+      "icon": "⭐",
+      "lastUpdated": "2026-04-24T00:00:00.000Z"
     }
   }
 }

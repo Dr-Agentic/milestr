@@ -57,7 +57,7 @@ npm run dev -- --agent your-agent-name progress M1 50
 ### Add and update KPIs
 
 ```bash
-npm run dev -- --agent your-agent create-kpi --id kpi-users --title "Active Users" --value 0 --unit users --source "Email inbox"
+npm run dev -- --agent your-agent create-kpi --id kpi-users --title "Active Users" --value 0 --unit users --source "Product analytics"
 npm run dev -- --agent your-agent update-kpi --id kpi-users --value 42 --trend up
 ```
 
@@ -134,7 +134,7 @@ The dashboard stores its state in `data.json`:
     "I1.1": { /* initiative task */ }
   },
   "kpis": {
-    "kpi-users": { "id": "kpi-users", "title": "Active Users", "value": 42, "unit": "users", "trend": "up", "source": "Email inbox", "icon": "people", "lastUpdated": "2026-04-12T00:00:00Z" }
+    "kpi-users": { "id": "kpi-users", "title": "Active Users", "value": 42, "unit": "users", "trend": "up", "source": "Product analytics", "icon": "people", "lastUpdated": "2026-04-12T00:00:00Z" }
   }
 }
 ```
@@ -198,10 +198,10 @@ Example OpenCLAW agent task file:
 
 ```typescript
 // Track a milestone
-await exec(`npm run dev -- --agent teggy status M1 ongoing`);
+await exec(`npm run dev -- --agent planner status M1 ongoing`);
 
 // Log a KPI update
-await exec(`npm run dev -- --agent teggy update-kpi --id kpi-users --value 42 --trend up`);
+await exec(`npm run dev -- --agent operator update-kpi --id kpi-users --value 42 --trend up`);
 
 // View dashboard
 await exec(`open dashboard.html`);

@@ -59,7 +59,7 @@
       "activityLog": [
         {
           "date": "2026-02-01T00:00:00Z",
-          "agent": "devvy",
+          "agent": "builder",
           "note": "Milestone complete"
         }
       ]
@@ -106,7 +106,7 @@
       "activityLog": [
         {
           "date": "2026-01-15T00:00:00Z",
-          "agent": "devvy",
+          "agent": "builder",
           "note": "Auth complete"
         }
       ]
@@ -125,7 +125,7 @@
       "activityLog": [
         {
           "date": "2026-02-01T00:00:00Z",
-          "agent": "devvy",
+          "agent": "builder",
           "note": "API complete"
         }
       ]
@@ -151,7 +151,7 @@
       "value": 0,
       "unit": "users",
       "trend": "neutral",
-      "source": "Email inbox",
+      "source": "Product analytics",
       "icon": "👥",
       "lastUpdated": "2026-04-12T00:00:00.000Z"
     },
@@ -161,7 +161,7 @@
       "value": 0,
       "unit": "USD",
       "trend": "neutral",
-      "source": "Stripe",
+      "source": "Billing report",
       "icon": "💰",
       "lastUpdated": "2026-04-12T00:00:00.000Z"
     }
