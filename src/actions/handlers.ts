@@ -1,12 +1,10 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import type { ActionContext, DashboardData, KPI, Metrics, ParsedArgs, Task, TaskStatus, TaskType, TrendDirection } from '../types';
 import { VALID_STATUSES } from '../types';
 import { CliError, ConflictError } from '../errors';
 import { createBackup, listBackups, restoreBackup } from '../data/backup';
 import { log } from '../data/logger';
-import { loadData, saveData, validateData } from '../data/store';
-import { exportDashboardHtml } from '../ui/dashboardHtml';
+import { loadData, saveData, saveStaticSite, validateData } from '../data/store';
+import { publishDashboard } from '../data/publish';
 import { addActivityLog, cascadeUpdate, getTaskOrThrow, recalculateProgress, updateParentStatus } from './utils';
 
 export type ActionHandler = (ctx: ActionContext, args: ParsedArgs) => Promise<void>;
@@ -35,6 +33,13 @@ function parseProgress(raw: string): number {
 
 function taskIcon(task: Task): string {
   return task.icon || '📋';
+}
+
+function logPublishedUrl(publishedUrl: string | null): void {
+  if (publishedUrl) {
+    log('Published: ' + publishedUrl);
+    console.log(publishedUrl);
+  }
 }
 
 export const actionCreate: ActionHandler = async (ctx, args) => {
@@ -82,8 +87,9 @@ export const actionCreate: ActionHandler = async (ctx, args) => {
     cascadeUpdate(data, parent);
   }
 
-  await saveData(ctx.paths, data, ctx.agent, 'create task ' + id + ': ' + title);
+  const result = await saveData(ctx.paths, data, ctx.agent, 'create task ' + id + ': ' + title);
   log('Created task: ' + id + ' (' + title + ')');
+  logPublishedUrl(result.publishedUrl);
 };
 
 export const actionStatus: ActionHandler = async (ctx, args) => {
@@ -114,8 +120,9 @@ export const actionStatus: ActionHandler = async (ctx, args) => {
   updateParentStatus(data, id);
   cascadeUpdate(data, id);
 
-  await saveData(ctx.paths, data, ctx.agent, 'status ' + id + ': ' + oldStatus + ' → ' + status);
+  const result = await saveData(ctx.paths, data, ctx.agent, 'status ' + id + ': ' + oldStatus + ' → ' + status);
   log('Updated ' + id + ': ' + oldStatus + ' → ' + status);
+  logPublishedUrl(result.publishedUrl);
 };
 
 export const actionProgress: ActionHandler = async (ctx, args) => {
@@ -142,8 +149,9 @@ export const actionProgress: ActionHandler = async (ctx, args) => {
   updateParentStatus(data, id);
   cascadeUpdate(data, id);
 
-  await saveData(ctx.paths, data, ctx.agent, 'progress ' + id + ': ' + oldProgress + '% → ' + pct + '%');
+  const result = await saveData(ctx.paths, data, ctx.agent, 'progress ' + id + ': ' + oldProgress + '% → ' + pct + '%');
   log('Updated ' + id + ': ' + oldProgress + '% → ' + pct + '%');
+  logPublishedUrl(result.publishedUrl);
 };
 
 export const actionTitle: ActionHandler = async (ctx, args) => {
@@ -160,8 +168,9 @@ export const actionTitle: ActionHandler = async (ctx, args) => {
   task.title = title;
 
   addActivityLog(data, id, 'Title changed: "' + oldTitle + '" → "' + title + '"', ctx.agent);
-  await saveData(ctx.paths, data, ctx.agent, 'title ' + id + ': "' + oldTitle + '" → "' + title + '"');
+  const result = await saveData(ctx.paths, data, ctx.agent, 'title ' + id + ': "' + oldTitle + '" → "' + title + '"');
   log('Updated ' + id + ' title');
+  logPublishedUrl(result.publishedUrl);
 };
 
 export const actionDue: ActionHandler = async (ctx, args) => {
@@ -177,8 +186,9 @@ export const actionDue: ActionHandler = async (ctx, args) => {
   task.dueDate = due;
 
   addActivityLog(data, id, 'Due date: ' + (oldDue ?? 'none') + ' → ' + due, ctx.agent);
-  await saveData(ctx.paths, data, ctx.agent, 'due ' + id + ': ' + (oldDue ?? 'none') + ' → ' + due);
+  const result = await saveData(ctx.paths, data, ctx.agent, 'due ' + id + ': ' + (oldDue ?? 'none') + ' → ' + due);
   log('Updated ' + id + ' due date: ' + due);
+  logPublishedUrl(result.publishedUrl);
 };
 
 export const actionDelete: ActionHandler = async (ctx, args) => {
@@ -207,8 +217,9 @@ export const actionDelete: ActionHandler = async (ctx, args) => {
     cascadeUpdate(data, parentId);
   }
 
-  await saveData(ctx.paths, data, ctx.agent, 'delete task ' + id);
+  const result = await saveData(ctx.paths, data, ctx.agent, 'delete task ' + id);
   log('Deleted task: ' + id);
+  logPublishedUrl(result.publishedUrl);
 };
 
 export const actionRecalc: ActionHandler = async (ctx, args) => {
@@ -222,8 +233,9 @@ export const actionRecalc: ActionHandler = async (ctx, args) => {
   recalculateProgress(data, id);
   cascadeUpdate(data, id);
 
-  await saveData(ctx.paths, data, ctx.agent, 'recalc ' + id);
+  const result = await saveData(ctx.paths, data, ctx.agent, 'recalc ' + id);
   log('Recalculated ' + id);
+  logPublishedUrl(result.publishedUrl);
 };
 
 export const actionView: ActionHandler = async (ctx, args) => {
@@ -282,9 +294,10 @@ export const actionRestore: ActionHandler = async (ctx, args) => {
   }
 
   validateData(restored);
-  const html = exportDashboardHtml(restored);
-  await fs.writeFile(ctx.paths.htmlFile, html, 'utf8');
+  await saveStaticSite(ctx.paths, restored);
+  const publishedUrl = await publishDashboard(ctx.paths, restored);
   log('Restored from backup: ' + timestamp);
+  logPublishedUrl(publishedUrl);
 };
 
 export const actionListBackups: ActionHandler = async (ctx) => {
@@ -337,9 +350,15 @@ export const actionMetrics: ActionHandler = async (ctx) => {
 
 export const actionExport: ActionHandler = async (ctx) => {
   const data = await loadData(ctx.paths);
-  const html = exportDashboardHtml(data);
-  await fs.writeFile(path.join(ctx.paths.dashboardDir, 'dashboard.html'), html, 'utf8');
+  await saveStaticSite(ctx.paths, data);
   log('Exported dashboard.html');
+};
+
+export const actionPublish: ActionHandler = async (ctx) => {
+  const data = await loadData(ctx.paths);
+  await saveStaticSite(ctx.paths, data);
+  const publishedUrl = await publishDashboard(ctx.paths, data);
+  logPublishedUrl(publishedUrl);
 };
 
 // --- KPI Actions ---
@@ -366,19 +385,23 @@ export const actionCreateKpi: ActionHandler = async (ctx, args) => {
     throw new ConflictError('KPI already exists: ' + id);
   }
 
-  data.kpis[id] = {
+  const kpi: KPI = {
     id,
     title,
     value,
-    unit,
-    trend,
-    source,
     icon,
     lastUpdated: new Date().toISOString()
   };
 
-  await saveData(ctx.paths, data, ctx.agent, 'create KPI ' + id + ': ' + title + ' = ' + value + (unit ? ' ' + unit : ''));
+  if (unit !== undefined) kpi.unit = unit;
+  if (trend !== undefined) kpi.trend = trend;
+  if (source !== undefined) kpi.source = source;
+
+  data.kpis[id] = kpi;
+
+  const result = await saveData(ctx.paths, data, ctx.agent, 'create KPI ' + id + ': ' + title + ' = ' + value + (unit ? ' ' + unit : ''));
   log('Created KPI: ' + id + ' (' + title + ')');
+  logPublishedUrl(result.publishedUrl);
 };
 
 export const actionUpdateKpi: ActionHandler = async (ctx, args) => {
@@ -409,8 +432,9 @@ export const actionUpdateKpi: ActionHandler = async (ctx, args) => {
   if (icon !== undefined) kpi.icon = icon;
   kpi.lastUpdated = new Date().toISOString();
 
-  await saveData(ctx.paths, data, ctx.agent, 'update KPI ' + id + ': ' + oldValue + ' → ' + kpi.value);
+  const result = await saveData(ctx.paths, data, ctx.agent, 'update KPI ' + id + ': ' + oldValue + ' → ' + kpi.value);
   log('Updated KPI ' + id + ': ' + oldValue + ' → ' + kpi.value);
+  logPublishedUrl(result.publishedUrl);
 };
 
 export const actionListKpis: ActionHandler = async (ctx) => {
@@ -442,6 +466,7 @@ export const ACTIONS: Record<string, ActionHandler> = {
   backups: actionListBackups,
   metrics: actionMetrics,
   export: actionExport,
+  publish: actionPublish,
   'create-kpi': actionCreateKpi,
   'update-kpi': actionUpdateKpi,
   'list-kpis': actionListKpis

@@ -56,5 +56,5 @@ export const dashboardDataSchema = z.object({
 });
 
 export function validateDashboardData(data: unknown): DashboardData {
-  return dashboardDataSchema.parse(data);
+  return dashboardDataSchema.parse(data) as DashboardData;
 }

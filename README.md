@@ -110,6 +110,9 @@ npm run dev -- --agent <name> list-kpis
 # Export dashboard
 npm run dev -- --agent <name> export
 
+# Publish dashboard to Cloudflare Pages
+npm run dev -- --agent <name> publish
+
 # Backups
 npm run dev -- --agent <name> backup
 npm run dev -- --agent <name> backups

@@ -73,6 +73,9 @@ export interface DataPaths {
   lockFile: string;
   logFile: string;
   htmlFile: string;
+  siteDir: string;
+  siteIndexFile: string;
+  cloudflareConfigFile: string;
 }
 
 export interface ActionContext {
@@ -85,4 +88,12 @@ export interface Metrics {
   byStatus: Partial<Record<TaskStatus, number>>;
   byType: Partial<Record<TaskType, number>>;
   completed: number;
+}
+
+export interface CloudflarePublishConfig {
+  projectName: string;
+}
+
+export interface SaveResult {
+  publishedUrl: string | null;
 }

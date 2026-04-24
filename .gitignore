@@ -1,5 +1,9 @@
-data/
-dashboard.html
+/data/
+/dashboard.html
+/site/
+/dist/
+.milestr-cloudflare.json
+.DS_Store
 node_modules/
 *.log
 *.backup.*

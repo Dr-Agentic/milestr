@@ -88,12 +88,12 @@ export function cascadeUpdate(data: DashboardData, taskId: string): void {
   let currentId: string | null = taskId;
 
   while (currentId) {
-    const task = data.tasks[currentId];
+    const task: Task | undefined = data.tasks[currentId];
     if (!task?.parent) {
       break;
     }
 
-    const parent = data.tasks[task.parent];
+    const parent: Task | undefined = data.tasks[task.parent];
     if (!parent?.children.length) {
       break;
     }

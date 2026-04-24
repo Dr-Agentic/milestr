@@ -82,6 +82,7 @@ function printHelp(): void {
     '  backups                                List available backups',
     '  metrics                                Show dashboard statistics',
     '  export                                 Export HTML dashboard (KPIs/Timeline/Kanban/List views)',
+    '  publish                                Publish the static dashboard to Cloudflare Pages',
     '',
     'Examples:',
     '  npm run dev -- --agent teggy status I1.2 ongoing "Working on it"',
