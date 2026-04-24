@@ -1,6 +1,6 @@
 # Milestr — AI Agent Goal & Milestone Dashboard
 
-> OpenCLAW-powered milestone tracking dashboard. Built for AI agents to manage large projects, track their own progress, and maintain accountability of their plans and goals.
+> OpenCLAW and Hermes agent-powered milestone tracking dashboard. Built for AI agents to manage large projects, track progress, and maintain accountability across goals, milestones, initiatives, tasks, and KPIs.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
@@ -10,7 +10,7 @@
 
 ## What is Milestr?
 
-Milestr is a lightweight, terminal-driven project and milestone tracking dashboard designed specifically for AI agents operating via [OpenCLAW](https://github.com/openclaw/openclaw).
+Milestr is a lightweight, terminal-driven project and milestone tracking dashboard designed specifically for AI agents operating via [OpenCLAW](https://github.com/openclaw/openclaw) and Hermes agents.
 
 It gives agents a structured way to:
 - **Track progress** across goals, milestones, initiatives, and tasks
