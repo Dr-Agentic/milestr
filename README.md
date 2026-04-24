@@ -67,6 +67,12 @@ npm run dev -- --agent your-agent update-kpi --id kpi-users --value 42 --trend u
 open dashboard.html
 ```
 
+## Docs
+
+- [User Guide](docs/user-guide.md)
+- [Developer Guide](docs/developer-guide.md)
+- [Agent Skill](SKILL.md)
+
 ---
 
 ## CLI Reference
