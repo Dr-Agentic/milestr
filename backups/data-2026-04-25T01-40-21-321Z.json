@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-04-25T01:40:54.401Z",
+    "lastUpdated": "2026-04-25T01:39:50.481Z",
     "updateFrequency": "daily",
     "version": "1.1"
   },
@@ -519,28 +519,8 @@
       "id": "kpi-aws",
       "title": "AWS Revenue",
       "value": "0",
-      "unit": "$",
-      "trend": "neutral",
-      "source": "CRM",
       "icon": "🟠",
-      "lastUpdated": "2026-04-25T01:39:50.479Z"
-    },
-    "kpi-nova": {
-      "id": "kpi-nova",
-      "title": "NOVA Revenue",
-      "value": "0",
-      "unit": "$",
-      "trend": "neutral",
-      "source": "CRM",
-      "icon": "⚪",
-      "lastUpdated": "2026-04-25T01:40:21.321Z"
-    },
-    "kpi-ai": {
-      "id": "kpi-ai",
-      "title": "AI Partnerships Revenue",
-      "value": "0",
-      "icon": "🤖",
-      "lastUpdated": "2026-04-25T01:40:54.399Z",
+      "lastUpdated": "2026-04-25T01:39:50.479Z",
       "unit": "$",
       "trend": "neutral",
       "source": "CRM"

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-04-25T01:40:54.401Z",
+    "lastUpdated": "2026-04-25T01:39:29.576Z",
     "updateFrequency": "daily",
     "version": "1.1"
   },
@@ -499,48 +499,8 @@
       "id": "kpi-revenue",
       "title": "Revenue Influenced",
       "value": "0",
-      "unit": "$",
-      "trend": "neutral",
-      "source": "CRM",
       "icon": "💰",
-      "lastUpdated": "2026-04-25T01:39:29.574Z"
-    },
-    "kpi-oracle": {
-      "id": "kpi-oracle",
-      "title": "Oracle Revenue",
-      "value": "0",
-      "unit": "$",
-      "trend": "neutral",
-      "source": "CRM",
-      "icon": "🔴",
-      "lastUpdated": "2026-04-25T01:39:50.376Z"
-    },
-    "kpi-aws": {
-      "id": "kpi-aws",
-      "title": "AWS Revenue",
-      "value": "0",
-      "unit": "$",
-      "trend": "neutral",
-      "source": "CRM",
-      "icon": "🟠",
-      "lastUpdated": "2026-04-25T01:39:50.479Z"
-    },
-    "kpi-nova": {
-      "id": "kpi-nova",
-      "title": "NOVA Revenue",
-      "value": "0",
-      "unit": "$",
-      "trend": "neutral",
-      "source": "CRM",
-      "icon": "⚪",
-      "lastUpdated": "2026-04-25T01:40:21.321Z"
-    },
-    "kpi-ai": {
-      "id": "kpi-ai",
-      "title": "AI Partnerships Revenue",
-      "value": "0",
-      "icon": "🤖",
-      "lastUpdated": "2026-04-25T01:40:54.399Z",
+      "lastUpdated": "2026-04-25T01:39:29.574Z",
       "unit": "$",
       "trend": "neutral",
       "source": "CRM"

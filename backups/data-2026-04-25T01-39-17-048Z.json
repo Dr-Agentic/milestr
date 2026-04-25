@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-04-25T01:40:54.401Z",
+    "lastUpdated": "2026-04-25T01:38:56.975Z",
     "updateFrequency": "daily",
     "version": "1.1"
   },
@@ -101,8 +101,7 @@
         "I4.3",
         "I4.4",
         "I4.5",
-        "I4.2",
-        "I4.6"
+        "I4.2"
       ],
       "activityLog": [
         {
@@ -403,25 +402,6 @@
           "note": "Task created"
         }
       ]
-    },
-    "I4.6": {
-      "id": "I4.6",
-      "title": "AWS Bedrock Partnership",
-      "subtitle": "",
-      "type": "initiative",
-      "status": "not_started",
-      "progress": 0,
-      "dueDate": "2026-12-31",
-      "icon": "🟠",
-      "parent": "M4",
-      "children": [],
-      "activityLog": [
-        {
-          "date": "2026-04-25T01:39:17.048Z",
-          "agent": "career-agent",
-          "note": "Task created"
-        }
-      ]
     }
   },
   "kpis": {
@@ -494,56 +474,6 @@
       "source": "Self-assessment",
       "icon": "🎯",
       "lastUpdated": "2026-04-25T00:17:04.978Z"
-    },
-    "kpi-revenue": {
-      "id": "kpi-revenue",
-      "title": "Revenue Influenced",
-      "value": "0",
-      "unit": "$",
-      "trend": "neutral",
-      "source": "CRM",
-      "icon": "💰",
-      "lastUpdated": "2026-04-25T01:39:29.574Z"
-    },
-    "kpi-oracle": {
-      "id": "kpi-oracle",
-      "title": "Oracle Revenue",
-      "value": "0",
-      "unit": "$",
-      "trend": "neutral",
-      "source": "CRM",
-      "icon": "🔴",
-      "lastUpdated": "2026-04-25T01:39:50.376Z"
-    },
-    "kpi-aws": {
-      "id": "kpi-aws",
-      "title": "AWS Revenue",
-      "value": "0",
-      "unit": "$",
-      "trend": "neutral",
-      "source": "CRM",
-      "icon": "🟠",
-      "lastUpdated": "2026-04-25T01:39:50.479Z"
-    },
-    "kpi-nova": {
-      "id": "kpi-nova",
-      "title": "NOVA Revenue",
-      "value": "0",
-      "unit": "$",
-      "trend": "neutral",
-      "source": "CRM",
-      "icon": "⚪",
-      "lastUpdated": "2026-04-25T01:40:21.321Z"
-    },
-    "kpi-ai": {
-      "id": "kpi-ai",
-      "title": "AI Partnerships Revenue",
-      "value": "0",
-      "icon": "🤖",
-      "lastUpdated": "2026-04-25T01:40:54.399Z",
-      "unit": "$",
-      "trend": "neutral",
-      "source": "CRM"
     }
   }
 }

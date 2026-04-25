@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-04-25T00:15:35.054Z",
+    "lastUpdated": "2026-04-25T01:38:17.773Z",
     "updateFrequency": "daily",
     "version": "1.1"
   },
@@ -21,7 +21,7 @@
   "tasks": {
     "ROOT": {
       "id": "ROOT",
-      "title": "Work Effectiveness Coach",
+      "title": "$100M Revenue Influence",
       "subtitle": "Generic demo workspace",
       "type": "goal",
       "status": "ongoing",
@@ -31,6 +31,11 @@
       "parent": null,
       "children": [],
       "activityLog": [
+        {
+          "date": "2026-04-25T01:34:31.053Z",
+          "agent": "career-agent",
+          "note": "Title changed: \"Work Effectiveness Coach\" → \"$100M Revenue Influence\""
+        },
         {
           "date": "2026-04-25T00:12:54.368Z",
           "agent": "career-agent",
@@ -60,61 +65,22 @@
     },
     "M1": {
       "id": "M1",
-      "title": "Today's Focus",
+      "title": "AWS Partnership",
       "subtitle": "",
       "type": "milestone",
       "status": "not_started",
       "progress": 0,
-      "dueDate": "2026-04-25",
-      "icon": "🎯",
+      "dueDate": "2026-12-31",
+      "icon": "🟠",
       "parent": null,
       "children": [
         "I1.1",
-        "I1.2"
+        "I1.2",
+        "I1.3"
       ],
       "activityLog": [
         {
-          "date": "2026-04-25T00:13:29.034Z",
-          "agent": "career-agent",
-          "note": "Task created"
-        }
-      ]
-    },
-    "M3": {
-      "id": "M3",
-      "title": "Monthly Goals",
-      "subtitle": "",
-      "type": "milestone",
-      "status": "not_started",
-      "progress": 0,
-      "dueDate": "2026-05-31",
-      "icon": "🎯",
-      "parent": null,
-      "children": [
-        "I3.1"
-      ],
-      "activityLog": [
-        {
-          "date": "2026-04-25T00:14:06.531Z",
-          "agent": "career-agent",
-          "note": "Task created"
-        }
-      ]
-    },
-    "M2": {
-      "id": "M2",
-      "title": "Weekly Sprint",
-      "subtitle": "",
-      "type": "milestone",
-      "status": "not_started",
-      "progress": 0,
-      "dueDate": "2026-05-01",
-      "icon": "📆",
-      "parent": null,
-      "children": [],
-      "activityLog": [
-        {
-          "date": "2026-04-25T00:14:09.744Z",
+          "date": "2026-04-25T01:34:53.368Z",
           "agent": "career-agent",
           "note": "Task created"
         }
@@ -122,18 +88,65 @@
     },
     "M4": {
       "id": "M4",
-      "title": "Career Velocity",
+      "title": "AI Partnerships",
       "subtitle": "",
       "type": "milestone",
       "status": "not_started",
       "progress": 0,
-      "dueDate": "2027-02-28",
-      "icon": "🚀",
+      "dueDate": "2026-12-31",
+      "icon": "🤖",
       "parent": null,
-      "children": [],
+      "children": [
+        "I4.1"
+      ],
       "activityLog": [
         {
-          "date": "2026-04-25T00:14:32.283Z",
+          "date": "2026-04-25T01:35:10.667Z",
+          "agent": "career-agent",
+          "note": "Task created"
+        }
+      ]
+    },
+    "M3": {
+      "id": "M3",
+      "title": "NOVA Partnership",
+      "subtitle": "",
+      "type": "milestone",
+      "status": "not_started",
+      "progress": 0,
+      "dueDate": "2026-12-31",
+      "icon": "⚪",
+      "parent": null,
+      "children": [
+        "I3.1",
+        "I3.2"
+      ],
+      "activityLog": [
+        {
+          "date": "2026-04-25T01:35:10.686Z",
+          "agent": "career-agent",
+          "note": "Task created"
+        }
+      ]
+    },
+    "M2": {
+      "id": "M2",
+      "title": "Oracle Partnership",
+      "subtitle": "",
+      "type": "milestone",
+      "status": "not_started",
+      "progress": 0,
+      "dueDate": "2026-12-31",
+      "icon": "🔴",
+      "parent": null,
+      "children": [
+        "I2.1",
+        "I2.2",
+        "I2.3"
+      ],
+      "activityLog": [
+        {
+          "date": "2026-04-25T01:35:34.933Z",
           "agent": "career-agent",
           "note": "Task created"
         }
@@ -141,18 +154,37 @@
     },
     "I1.1": {
       "id": "I1.1",
-      "title": "Morning Review → NBATDR",
+      "title": "Reset Cosell Process",
       "subtitle": "",
       "type": "initiative",
       "status": "not_started",
       "progress": 0,
-      "dueDate": "2026-04-25",
-      "icon": "🌅",
+      "dueDate": "2026-06-30",
+      "icon": "🔄",
       "parent": "M1",
       "children": [],
       "activityLog": [
         {
-          "date": "2026-04-25T00:14:56.955Z",
+          "date": "2026-04-25T01:36:08.866Z",
+          "agent": "career-agent",
+          "note": "Task created"
+        }
+      ]
+    },
+    "I2.1": {
+      "id": "I2.1",
+      "title": "Retail GTM",
+      "subtitle": "",
+      "type": "initiative",
+      "status": "not_started",
+      "progress": 0,
+      "dueDate": "2026-06-30",
+      "icon": "🛒",
+      "parent": "M2",
+      "children": [],
+      "activityLog": [
+        {
+          "date": "2026-04-25T01:36:28.609Z",
           "agent": "career-agent",
           "note": "Task created"
         }
@@ -160,18 +192,37 @@
     },
     "I1.2": {
       "id": "I1.2",
-      "title": "Execute Top 3 Actions",
+      "title": "Amazon Connect GTM",
       "subtitle": "",
       "type": "initiative",
       "status": "not_started",
       "progress": 0,
-      "dueDate": "2026-04-25",
-      "icon": "⚡",
+      "dueDate": "2026-09-30",
+      "icon": "📞",
       "parent": "M1",
       "children": [],
       "activityLog": [
         {
-          "date": "2026-04-25T00:15:10.161Z",
+          "date": "2026-04-25T01:36:28.884Z",
+          "agent": "career-agent",
+          "note": "Task created"
+        }
+      ]
+    },
+    "I2.2": {
+      "id": "I2.2",
+      "title": "Fusion CX Integration",
+      "subtitle": "",
+      "type": "initiative",
+      "status": "not_started",
+      "progress": 0,
+      "dueDate": "2026-09-30",
+      "icon": "🔗",
+      "parent": "M2",
+      "children": [],
+      "activityLog": [
+        {
+          "date": "2026-04-25T01:37:02.005Z",
           "agent": "career-agent",
           "note": "Task created"
         }
@@ -179,18 +230,94 @@
     },
     "I3.1": {
       "id": "I3.1",
-      "title": "RingCentral Influence Quarter",
+      "title": "Healthcare Partners",
       "subtitle": "",
       "type": "initiative",
       "status": "not_started",
       "progress": 0,
-      "dueDate": "2026-05-31",
-      "icon": "📈",
+      "dueDate": "2026-09-30",
+      "icon": "🏥",
       "parent": "M3",
       "children": [],
       "activityLog": [
         {
-          "date": "2026-04-25T00:15:35.052Z",
+          "date": "2026-04-25T01:37:02.085Z",
+          "agent": "career-agent",
+          "note": "Task created"
+        }
+      ]
+    },
+    "I1.3": {
+      "id": "I1.3",
+      "title": "Project Leo",
+      "subtitle": "",
+      "type": "initiative",
+      "status": "not_started",
+      "progress": 0,
+      "dueDate": "2026-12-31",
+      "icon": "🦁",
+      "parent": "M1",
+      "children": [],
+      "activityLog": [
+        {
+          "date": "2026-04-25T01:37:33.415Z",
+          "agent": "career-agent",
+          "note": "Task created"
+        }
+      ]
+    },
+    "I2.3": {
+      "id": "I2.3",
+      "title": "Healthcare GTM",
+      "subtitle": "",
+      "type": "initiative",
+      "status": "not_started",
+      "progress": 0,
+      "dueDate": "2026-12-31",
+      "icon": "🏥",
+      "parent": "M2",
+      "children": [],
+      "activityLog": [
+        {
+          "date": "2026-04-25T01:37:48.939Z",
+          "agent": "career-agent",
+          "note": "Task created"
+        }
+      ]
+    },
+    "I3.2": {
+      "id": "I3.2",
+      "title": "FinServ Partners",
+      "subtitle": "",
+      "type": "initiative",
+      "status": "not_started",
+      "progress": 0,
+      "dueDate": "2026-12-31",
+      "icon": "💰",
+      "parent": "M3",
+      "children": [],
+      "activityLog": [
+        {
+          "date": "2026-04-25T01:37:48.994Z",
+          "agent": "career-agent",
+          "note": "Task created"
+        }
+      ]
+    },
+    "I4.1": {
+      "id": "I4.1",
+      "title": "OpenAI Partnership",
+      "subtitle": "",
+      "type": "initiative",
+      "status": "not_started",
+      "progress": 0,
+      "dueDate": "2026-06-30",
+      "icon": "🔵",
+      "parent": "M4",
+      "children": [],
+      "activityLog": [
+        {
+          "date": "2026-04-25T01:38:17.771Z",
           "agent": "career-agent",
           "note": "Task created"
         }
@@ -247,6 +374,26 @@
       "source": "Self-assessment",
       "icon": "👁️",
       "lastUpdated": "2026-04-24T23:39:28.889Z"
+    },
+    "kpi-actions": {
+      "id": "kpi-actions",
+      "title": "Actions Completed",
+      "value": "0",
+      "unit": "/day",
+      "trend": "neutral",
+      "source": "Tracker",
+      "icon": "⚡",
+      "lastUpdated": "2026-04-25T00:16:23.143Z"
+    },
+    "kpi-nbatdr": {
+      "id": "kpi-nbatdr",
+      "title": "NBATDR Score",
+      "value": "0",
+      "unit": "/day",
+      "trend": "neutral",
+      "source": "Self-assessment",
+      "icon": "🎯",
+      "lastUpdated": "2026-04-25T00:17:04.978Z"
     }
   }
 }
