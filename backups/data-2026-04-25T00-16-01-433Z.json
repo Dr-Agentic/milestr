@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-04-24T23:41:26.927Z",
+    "lastUpdated": "2026-04-25T00:15:35.086Z",
     "updateFrequency": "daily",
     "version": "1.1"
   },
@@ -21,7 +21,7 @@
   "tasks": {
     "ROOT": {
       "id": "ROOT",
-      "title": "Morsy's VP Journey",
+      "title": "Work Effectiveness Coach",
       "subtitle": "Generic demo workspace",
       "type": "goal",
       "status": "ongoing",
@@ -31,6 +31,16 @@
       "parent": null,
       "children": [],
       "activityLog": [
+        {
+          "date": "2026-04-25T00:12:54.368Z",
+          "agent": "career-agent",
+          "note": "Status: ongoing → ongoing"
+        },
+        {
+          "date": "2026-04-25T00:12:37.276Z",
+          "agent": "career-agent",
+          "note": "Title changed: \"Morsy's VP Journey\" → \"Work Effectiveness Coach\""
+        },
         {
           "date": "2026-04-24T23:35:51.179Z",
           "agent": "career-agent",
@@ -50,22 +60,21 @@
     },
     "M1": {
       "id": "M1",
-      "title": "Executive Presence & Visibility",
+      "title": "Today's Focus",
       "subtitle": "",
       "type": "milestone",
-      "status": "ongoing",
+      "status": "not_started",
       "progress": 0,
-      "dueDate": "2026-05-15",
-      "icon": "🎤",
+      "dueDate": "2026-04-25",
+      "icon": "🎯",
       "parent": null,
       "children": [
         "I1.1",
-        "I1.2",
-        "I1.3"
+        "I1.2"
       ],
       "activityLog": [
         {
-          "date": "2026-04-24T23:37:29.957Z",
+          "date": "2026-04-25T00:13:29.034Z",
           "agent": "career-agent",
           "note": "Task created"
         }
@@ -73,41 +82,20 @@
     },
     "M3": {
       "id": "M3",
-      "title": "Strategic Influence & Executive Communication",
+      "title": "Monthly Goals",
       "subtitle": "",
       "type": "milestone",
       "status": "not_started",
       "progress": 0,
-      "dueDate": "2026-09-30",
-      "icon": "🏰",
+      "dueDate": "2026-05-31",
+      "icon": "🎯",
       "parent": null,
       "children": [
         "I3.1"
       ],
       "activityLog": [
         {
-          "date": "2026-04-24T23:37:45.660Z",
-          "agent": "career-agent",
-          "note": "Task created"
-        }
-      ]
-    },
-    "M4": {
-      "id": "M4",
-      "title": "Deal Strategy & Win Rate",
-      "subtitle": "",
-      "type": "milestone",
-      "status": "not_started",
-      "progress": 0,
-      "dueDate": "2026-11-30",
-      "icon": "💼",
-      "parent": null,
-      "children": [
-        "I4.1"
-      ],
-      "activityLog": [
-        {
-          "date": "2026-04-24T23:37:45.680Z",
+          "date": "2026-04-25T00:14:06.531Z",
           "agent": "career-agent",
           "note": "Task created"
         }
@@ -115,39 +103,39 @@
     },
     "M2": {
       "id": "M2",
-      "title": "Leadership & Team Building",
+      "title": "Weekly Sprint",
       "subtitle": "",
       "type": "milestone",
-      "status": "ongoing",
+      "status": "not_started",
       "progress": 0,
-      "dueDate": "2026-07-15",
-      "icon": "👥",
+      "dueDate": "2026-05-01",
+      "icon": "📆",
       "parent": null,
-      "children": [
-        "I2.1"
-      ],
+      "children": [],
       "activityLog": [
         {
-          "date": "2026-04-24T23:38:00.715Z",
+          "date": "2026-04-25T00:14:09.744Z",
           "agent": "career-agent",
           "note": "Task created"
         }
       ]
     },
-    "M5": {
-      "id": "M5",
-      "title": "Network Building & Organizational Influence",
+    "M4": {
+      "id": "M4",
+      "title": "Career Velocity",
       "subtitle": "",
       "type": "milestone",
       "status": "not_started",
       "progress": 0,
       "dueDate": "2027-02-28",
-      "icon": "🌐",
+      "icon": "🚀",
       "parent": null,
-      "children": [],
+      "children": [
+        "I4.1"
+      ],
       "activityLog": [
         {
-          "date": "2026-04-24T23:38:22.448Z",
+          "date": "2026-04-25T00:14:32.283Z",
           "agent": "career-agent",
           "note": "Task created"
         }
@@ -155,18 +143,18 @@
     },
     "I1.1": {
       "id": "I1.1",
-      "title": "Pre-align Before Key Meetings",
+      "title": "Morning Review → NBATDR",
       "subtitle": "",
       "type": "initiative",
       "status": "not_started",
       "progress": 0,
-      "dueDate": "2026-05-01",
-      "icon": "🤝",
+      "dueDate": "2026-04-25",
+      "icon": "🌅",
       "parent": "M1",
       "children": [],
       "activityLog": [
         {
-          "date": "2026-04-24T23:38:40.643Z",
+          "date": "2026-04-25T00:14:56.955Z",
           "agent": "career-agent",
           "note": "Task created"
         }
@@ -174,47 +162,18 @@
     },
     "I1.2": {
       "id": "I1.2",
-      "title": "Never Correct in Public",
+      "title": "Execute Top 3 Actions",
       "subtitle": "",
       "type": "initiative",
-      "status": "ongoing",
+      "status": "not_started",
       "progress": 0,
-      "dueDate": "2026-04-30",
-      "icon": "🤐",
+      "dueDate": "2026-04-25",
+      "icon": "⚡",
       "parent": "M1",
       "children": [],
       "activityLog": [
         {
-          "date": "2026-04-24T23:40:25.319Z",
-          "agent": "career-agent",
-          "note": "Status: not_started → ongoing"
-        },
-        {
-          "date": "2026-04-24T23:39:45.018Z",
-          "agent": "career-agent",
-          "note": "Task created"
-        }
-      ]
-    },
-    "I2.1": {
-      "id": "I2.1",
-      "title": "Build Senior Relationships Inside RingCentral",
-      "subtitle": "",
-      "type": "initiative",
-      "status": "ongoing",
-      "progress": 0,
-      "dueDate": "2026-06-30",
-      "icon": "🏢",
-      "parent": "M2",
-      "children": [],
-      "activityLog": [
-        {
-          "date": "2026-04-24T23:40:38.738Z",
-          "agent": "career-agent",
-          "note": "Status: not_started → ongoing"
-        },
-        {
-          "date": "2026-04-24T23:39:58.808Z",
+          "date": "2026-04-25T00:15:10.161Z",
           "agent": "career-agent",
           "note": "Task created"
         }
@@ -222,42 +181,18 @@
     },
     "I3.1": {
       "id": "I3.1",
-      "title": "Executive Reporting Style",
+      "title": "RingCentral Influence Quarter",
       "subtitle": "",
       "type": "initiative",
       "status": "not_started",
       "progress": 0,
-      "dueDate": "2026-08-01",
-      "icon": "📋",
+      "dueDate": "2026-05-31",
+      "icon": "📈",
       "parent": "M3",
       "children": [],
       "activityLog": [
         {
-          "date": "2026-04-24T23:40:50.489Z",
-          "agent": "career-agent",
-          "note": "Status: not_started → not_started"
-        },
-        {
-          "date": "2026-04-24T23:39:58.821Z",
-          "agent": "career-agent",
-          "note": "Task created"
-        }
-      ]
-    },
-    "I1.3": {
-      "id": "I1.3",
-      "title": "Lead with 'What Might I Be Missing'",
-      "subtitle": "",
-      "type": "initiative",
-      "status": "not_started",
-      "progress": 0,
-      "dueDate": "2026-05-15",
-      "icon": "❓",
-      "parent": "M1",
-      "children": [],
-      "activityLog": [
-        {
-          "date": "2026-04-24T23:41:09.229Z",
+          "date": "2026-04-25T00:15:35.052Z",
           "agent": "career-agent",
           "note": "Task created"
         }
@@ -265,18 +200,18 @@
     },
     "I4.1": {
       "id": "I4.1",
-      "title": "Strategic Deal Reviews",
+      "title": "Deliver VP-Candidate Results",
       "subtitle": "",
       "type": "initiative",
       "status": "not_started",
       "progress": 0,
-      "dueDate": "2026-10-15",
-      "icon": "⚔️",
+      "dueDate": "2027-02-28",
+      "icon": "🏆",
       "parent": "M4",
       "children": [],
       "activityLog": [
         {
-          "date": "2026-04-24T23:41:26.926Z",
+          "date": "2026-04-25T00:15:35.082Z",
           "agent": "career-agent",
           "note": "Task created"
         }
