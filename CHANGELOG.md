@@ -37,6 +37,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.editorconfig` and `.gitattributes` for cross-platform formatting
   hygiene.
 
+### Tests
+- `tests/cli-smoke.test.ts` — end-to-end subprocess tests that spawn
+  the CLI binary against a temp workspace and assert on stdout. These
+  guard against wiring bugs that unit tests with mocks can miss (CLI
+  parsing + handler dispatch + lock acquisition + file I/O together).
+  Coverage: env var fallback, `--json` for view/list/list-kpis/metrics,
+  human-readable output preservation, CliError on missing agent,
+  explicit-flag-overrides-env precedence.
+
 ## [1.0.0] - 2026-04-24
 
 ### Added
