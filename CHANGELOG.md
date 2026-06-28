@@ -59,6 +59,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and running `wrangler pages project create` manually. See issue
   "`milestr publish --reset-project` flag".
 
+### CI fix (post-release)
+- Restored `package-lock.json` (deleted earlier during the
+  `dashboard-manager` -> `milestr` rename; `npm ci` requires it).
+- Bumped matrix from `[20.x, 22.x]` to `[22.x, 24.x]`. Node 20 is
+  deprecated on GitHub-hosted runners as of September 2025; Node 24
+  is the current latest. Coverage gate moved from 22.x to 24.x.
+
 ## [1.1.1] - 2026-06-28
 
 ### Added
