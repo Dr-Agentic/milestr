@@ -18,6 +18,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or `progress ... <100>`), not silently re-derived from children.
   Tracked for the v1.2 actions release.
 
+## [1.2.0] - 2026-06-28
+
+### Added
+- `--data <dir>` CLI flag for per-command data directory. Takes
+  precedence over `MILESTR_DATA` env var and CWD. Recommended for
+  agents operating multiple Milestr instances — keeps each
+  invocation explicit and avoids env-var cross-contamination.
+- Two new subprocess tests covering `--data` precedence: flag wins
+  over env var; flag works without env var.
+- `--data` and `--json` documented in `milestr help` output under a
+  new "Global options" section.
+
+### Changed
+- Data-directory resolution priority is now: `--data` flag >
+  `MILESTR_DATA` env > CWD. Previously: env > CWD (no flag option).
+- Error message when the directory cannot be chdir'd into now names
+  the source (`--data flag` or `MILESTR_DATA env`) for faster
+  debugging.
+- `SKILL.md` install guide: `--data <dir>` is now the recommended
+  pattern; `MILESTR_DATA` is positioned as a single-instance
+  shortcut. Driven by feedback that env-var-based config is fragile
+  when one agent operates multiple dashboards.
+
+### Tests
+- 55/55 passing (was 53). Two new smoke tests in
+  `tests/cli-smoke.test.ts`. Coverage 96.57% (unchanged).
+
+### Known issues filed for follow-up releases
+- ROOT lives in two places (`data.root` + `data.tasks.ROOT`);
+  `milestr title ROOT ...` only updates one half. See issue
+  "ROOT double-storage bug".
+- Cloudflare Pages project name is pinned after first publish and
+  no CLI flag exists to change it; users must hand-edit
+  `.milestr-cloudflare.json`. See issue
+  "`milestr publish --project <name>` flag".
+- CF Pages name collisions silently get hex prefixes; milestr should
+  warn loudly. See issue "Cloudflare Pages name-collision warning".
+- Changing the pinned project name requires deleting the config file
+  and running `wrangler pages project create` manually. See issue
+  "`milestr publish --reset-project` flag".
+
 ## [1.1.1] - 2026-06-28
 
 ### Added
@@ -90,7 +131,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Atomic writes with PID-based file locking and 10-deep backup ring.
 - 96.46% statement coverage across 41 tests.
 
-[Unreleased]: https://github.com/Dr-Agentic/milestr/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/Dr-Agentic/milestr/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/Dr-Agentic/milestr/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/Dr-Agentic/milestr/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/Dr-Agentic/milestr/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Dr-Agentic/milestr/releases/tag/v1.0.0

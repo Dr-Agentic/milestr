@@ -1,7 +1,7 @@
 ---
 name: milestr-dashboard
 description: Use when operating a Milestr dashboard instance — a TypeScript CLI that tracks hierarchical tasks (goal → milestone → initiative → task) and KPIs for a single project. Triggers on requests like "create a milestone", "log KPI value", "update task status", "set progress", "export the dashboard", "publish to Cloudflare Pages", "check task list", "back up the data", or any work that writes to or reads from a `data.json` Milestr file. Load this skill before running `npm run dev` against a Milestr instance.
-version: 1.1.1
+version: 1.2.0
 author: Stewart (strategy agent for Morsy) and the Milestr maintainers
 license: MIT
 metadata:
@@ -55,7 +55,7 @@ Verify:
 ```bash
 which milestr              # must point to the binary
 milestr help               # prints the full action list
-npm list -g milestr        # → milestr@1.1.1 (confirms the installed version)
+npm list -g milestr        # → milestr@1.2.0 (confirms the installed version)
 ```
 
 ### 3. Create a dashboard directory
@@ -68,16 +68,23 @@ cd ~/milestr/my-project
 cp /path/to/sample-data.json data.json   # optional starter data
 ```
 
-### 4. Pin the data directory with `MILESTR_DATA` (recommended)
+### 4. Pin the data directory per command (recommended for multi-instance users)
 
-To avoid `cd`-ing into the dashboard directory on every command, set `MILESTR_DATA`:
+If you operate more than one Milestr dashboard, **always pass `--data <dir>` per command** rather than setting an env var. This keeps each invocation explicit and avoids surprises when working across projects:
 
 ```bash
-# In your shell rc (~/.zshrc, ~/.bashrc) or your agent's environment config:
-export MILESTR_DATA=~/milestr/my-project
+milestr --data ~/milestr/my-project --agent planner list
+milestr --data ~/milestr/other-project --agent operator create-kpi --id kpi-x --title "X" --value 0 --unit count
 ```
 
-Every `milestr` invocation will read from and write to `$MILESTR_DATA/data.json` until you unset it.
+Single-instance shortcut (if you only ever work with one dashboard):
+
+```bash
+export MILESTR_DATA=~/milestr/my-project
+milestr --agent planner list   # reads $MILESTR_DATA/data.json
+```
+
+`MILESTR_DATA` exists for ergonomics — prefer `--data` when in doubt.
 
 ### 5. Try a read-only command
 
@@ -106,7 +113,7 @@ From the source repo, use `npm run dev -- <args>` instead of `milestr <args>`.
 ### Troubleshooting
 
 - **`milestr: command not found`** — npm's global bin dir isn't on PATH. Run `npm config get prefix`, then add `<prefix>/bin` to PATH.
-- **`Error: Failed to load data.json`** — CWD doesn't contain a `data.json`. Either `cd` into the right directory, set `MILESTR_DATA`, or run `milestr create --id ROOT --title "My Project" --type goal` to bootstrap one.
+- **`Error: Failed to load data.json`** — CWD doesn't contain a `data.json`. Either pass `--data /path/to/dashboard`, set `MILESTR_DATA`, `cd` into the right directory, or run `milestr create --id ROOT --title "My Project" --type goal` to bootstrap one.
 - **`--agent is required`** — set `MILESTR_AGENT=<name>` or pass `--agent <name>` per command.
 - **Permission denied on global install** — use `sudo npm install -g milestr`, or set up npm to use a non-root prefix: https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally
 

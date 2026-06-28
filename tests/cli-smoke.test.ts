@@ -169,6 +169,42 @@ describe('CLI smoke', () => {
 
     expect(result.status).toBe(1);
     expect(result.stderr).toContain('MILESTR_DATA');
-    expect(result.stderr).toContain('does not exist');
+    expect(result.stderr).toContain('Could not chdir');
+  });
+
+  it('--data flag overrides CWD without MILESTR_DATA env var', async () => {
+    // No MILESTR_DATA set; --data flag points at workspace from /tmp
+    const result = runCli(
+      ['--agent', 'stewart', '--data', workspace, 'list'],
+      {},
+      '/tmp'
+    );
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('Found 3 tasks');
+  });
+
+  it('--data flag overrides MILESTR_DATA env var (flag wins)', async () => {
+    const otherDir = await fs.mkdtemp(path.join(os.tmpdir(), 'milestr-other-'));
+    await fs.writeFile(
+      path.join(otherDir, 'data.json'),
+      `${JSON.stringify(createSampleData(), null, 2)}\n`,
+      'utf8'
+    );
+
+    try {
+      // MILESTR_DATA points to /tmp (no data.json there), --data points to workspace.
+      // --data should win.
+      const result = runCli(
+        ['--agent', 'stewart', '--data', workspace, 'list'],
+        { MILESTR_DATA: '/tmp' },
+        '/tmp'
+      );
+
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain('Found 3 tasks');
+    } finally {
+      await fs.rm(otherDir, { recursive: true, force: true });
+    }
   });
 });

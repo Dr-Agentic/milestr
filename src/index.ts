@@ -62,6 +62,10 @@ function printHelp(): void {
     'REQUIRED: --agent <name>   Track who is executing the command',
     '                         (e.g., --agent planner, --agent builder, --agent operator)',
     '',
+    'Global options:',
+    '  --data <dir>                Read/write data.json in <dir> instead of CWD',
+    '  --json                      Emit machine-readable JSON (view, list, list-kpis, metrics)',
+    '',
     'Task Actions:',
     '  create --id <id> --title <title> [--type task|initiative|milestone|goal] [--parent <id>] [--due YYYY-MM-DD] [--icon emoji]',
     '  status <id> <status> [note]           Status: not_started, analyzing, ongoing, done, blocked',
@@ -102,16 +106,20 @@ export async function run(argv: string[]): Promise<number> {
   const agent = typeof args.agent === 'string'
     ? args.agent
     : (process.env.MILESTR_AGENT ?? 'unknown');
-  // MILESTR_DATA env var lets agents pin a working directory without per-command
-  // --data flags. It accepts a directory path (containing data.json); the CLI
-  // chdirs into it before resolving paths.
-  if (process.env.MILESTR_DATA) {
-    const dataDir = path.resolve(process.env.MILESTR_DATA);
+  // Resolve data directory. Priority: --data flag > MILESTR_DATA env > CWD.
+  // Per-command --data is preferred for multi-instance users so each invocation
+  // can target a different data.json without env-var juggling.
+  const dataDir = typeof args.data === 'string' && args.data
+    ? path.resolve(args.data)
+    : process.env.MILESTR_DATA
+      ? path.resolve(process.env.MILESTR_DATA)
+      : null;
+  if (dataDir) {
     try {
       process.chdir(dataDir);
     } catch (error) {
       throw new CliError(
-        `MILESTR_DATA points to "${dataDir}" but that directory does not exist or is not accessible: ${(error as Error).message}`
+        `Could not chdir to data directory "${dataDir}" (from ${typeof args.data === 'string' ? '--data flag' : 'MILESTR_DATA env'}): ${(error as Error).message}`
       );
     }
   }
