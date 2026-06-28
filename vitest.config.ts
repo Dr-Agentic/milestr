@@ -9,7 +9,13 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       all: true,
       include: ['src/**/*.ts'],
-      exclude: ['src/types.ts']
+      exclude: ['src/types.ts'],
+      thresholds: {
+        statements: 95,
+        branches: 80,
+        functions: 95,
+        lines: 95
+      }
     }
   }
 });
