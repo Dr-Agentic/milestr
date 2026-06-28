@@ -88,6 +88,7 @@ export interface Metrics {
   byStatus: Partial<Record<TaskStatus, number>>;
   byType: Partial<Record<TaskType, number>>;
   completed: number;
+  kpis?: number;
 }
 
 export interface CloudflarePublishConfig {

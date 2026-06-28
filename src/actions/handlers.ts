@@ -238,6 +238,10 @@ export const actionRecalc: ActionHandler = async (ctx, args) => {
   logPublishedUrl(result.publishedUrl);
 };
 
+function isJsonMode(args: ParsedArgs): boolean {
+  return args.json === true || args.json === 'true';
+}
+
 export const actionView: ActionHandler = async (ctx, args) => {
   const data = await loadData(ctx.paths);
   const [id] = args._;
@@ -247,6 +251,12 @@ export const actionView: ActionHandler = async (ctx, args) => {
   }
 
   const task = getTaskOrThrow(data, id);
+
+  if (isJsonMode(args)) {
+    console.log(JSON.stringify(task, null, 2));
+    return;
+  }
+
   console.log('\n' + JSON.stringify(task, null, 2));
 };
 
@@ -265,6 +275,20 @@ export const actionList: ActionHandler = async (ctx, args) => {
   }
   if (parent) {
     tasks = tasks.filter((task) => task.parent === parent);
+  }
+
+  if (isJsonMode(args)) {
+    const json = tasks.map((task) => ({
+      id: task.id,
+      type: task.type,
+      status: task.status,
+      progress: task.progress,
+      title: task.title,
+      parent: task.parent,
+      icon: task.icon
+    }));
+    console.log(JSON.stringify(json, null, 2));
+    return;
   }
 
   console.log('\nFound ' + tasks.length + ' tasks:\n');
@@ -314,7 +338,7 @@ export const actionListBackups: ActionHandler = async (ctx) => {
   console.log('');
 };
 
-export const actionMetrics: ActionHandler = async (ctx) => {
+export const actionMetrics: ActionHandler = async (ctx, args) => {
   const data = await loadData(ctx.paths);
   const metrics: Metrics = {
     total: Object.keys(data.tasks).length,
@@ -331,6 +355,15 @@ export const actionMetrics: ActionHandler = async (ctx) => {
     }
   }
 
+  if (data.kpis) {
+    metrics.kpis = Object.keys(data.kpis).length;
+  }
+
+  if (isJsonMode(args)) {
+    console.log(JSON.stringify(metrics, null, 2));
+    return;
+  }
+
   console.log('\n📊 Dashboard Metrics:\n');
   console.log('  Total tasks: ' + metrics.total);
   console.log('  Completed: ' + metrics.completed);
@@ -342,8 +375,8 @@ export const actionMetrics: ActionHandler = async (ctx) => {
   for (const [type, count] of Object.entries(metrics.byType)) {
     console.log('    ' + type + ': ' + count);
   }
-  if (data.kpis) {
-    console.log('\n  KPIs: ' + Object.keys(data.kpis).length);
+  if (metrics.kpis !== undefined) {
+    console.log('\n  KPIs: ' + metrics.kpis);
   }
   console.log('');
 };
@@ -437,9 +470,24 @@ export const actionUpdateKpi: ActionHandler = async (ctx, args) => {
   logPublishedUrl(result.publishedUrl);
 };
 
-export const actionListKpis: ActionHandler = async (ctx) => {
+export const actionListKpis: ActionHandler = async (ctx, args) => {
   const data = await loadData(ctx.paths);
   const kpis = data.kpis ? Object.values(data.kpis) : [];
+
+  if (isJsonMode(args)) {
+    const json = kpis.map((kpi) => ({
+      id: kpi.id,
+      title: kpi.title,
+      value: kpi.value,
+      unit: kpi.unit,
+      trend: kpi.trend,
+      source: kpi.source,
+      icon: kpi.icon,
+      lastUpdated: kpi.lastUpdated
+    }));
+    console.log(JSON.stringify(json, null, 2));
+    return;
+  }
 
   console.log('\nFound ' + kpis.length + ' KPIs:\n');
   for (const kpi of kpis) {

@@ -141,4 +141,61 @@ describe('handlers', () => {
     await expect(ACTIONS['update-kpi'](ctx, { _: [] })).rejects.toThrow('update-kpi requires --id');
     await expect(ACTIONS['update-kpi'](ctx, { _: [], id: 'missing' })).rejects.toThrow('KPI not found');
   });
+
+  it('emits JSON output for view, list, list-kpis, and metrics when --json is set', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const ctx = { agent: 'agent', paths };
+
+    await ACTIONS['create-kpi'](ctx, { _: [], id: 'mrr', title: 'MRR', value: '100', unit: 'USD', trend: 'up', source: 'Stripe' });
+
+    logSpy.mockClear();
+    await ACTIONS.view(ctx, { _: ['M1'], json: true });
+    const viewLines = logSpy.mock.calls.map((c) => String(c[0])).join('\n');
+    expect(() => JSON.parse(viewLines)).not.toThrow();
+    expect(JSON.parse(viewLines).id).toBe('M1');
+
+    logSpy.mockClear();
+    await ACTIONS.list(ctx, { _: [], json: true });
+    const listLines = logSpy.mock.calls.map((c) => String(c[0])).join('\n');
+    const listParsed = JSON.parse(listLines);
+    expect(Array.isArray(listParsed)).toBe(true);
+    expect(listParsed[0]).toHaveProperty('id');
+    expect(listParsed[0]).toHaveProperty('status');
+    expect(listParsed[0]).not.toHaveProperty('activityLog');
+
+    logSpy.mockClear();
+    await ACTIONS['list-kpis'](ctx, { _: [], json: true });
+    const kpiLines = logSpy.mock.calls.map((c) => String(c[0])).join('\n');
+    const kpiParsed = JSON.parse(kpiLines) as Array<{ id: string; value: string | number; unit?: string; trend?: string }>;
+    expect(Array.isArray(kpiParsed)).toBe(true);
+    const mrr = kpiParsed.find((k) => k.id === 'mrr');
+    expect(mrr).toMatchObject({ id: 'mrr', value: '100', unit: 'USD', trend: 'up' });
+
+    logSpy.mockClear();
+    await ACTIONS.metrics(ctx, { _: [], json: true });
+    const metricsLines = logSpy.mock.calls.map((c) => String(c[0])).join('\n');
+    const metricsParsed = JSON.parse(metricsLines);
+    expect(metricsParsed).toHaveProperty('total');
+    expect(metricsParsed).toHaveProperty('byStatus');
+    expect(metricsParsed).toHaveProperty('kpis', 2);
+  });
+
+  it('keeps human-readable output when --json is not set', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const ctx = { agent: 'agent', paths };
+
+    await ACTIONS['create-kpi'](ctx, { _: [], id: 'mrr', title: 'MRR', value: '100' });
+
+    logSpy.mockClear();
+    await ACTIONS['list-kpis'](ctx, { _: [] });
+    expect(logSpy.mock.calls.flat().join(' ')).toContain('mrr');
+
+    logSpy.mockClear();
+    await ACTIONS.metrics(ctx, { _: [] });
+    expect(logSpy.mock.calls.flat().join(' ')).toContain('Total tasks');
+  });
 });

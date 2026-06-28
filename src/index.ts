@@ -97,11 +97,13 @@ function printHelp(): void {
 export async function run(argv: string[]): Promise<number> {
   const args = parseArgs(argv);
   const [action, ...rest] = args._;
-  const agent = typeof args.agent === 'string' ? args.agent : 'unknown';
+  const agent = typeof args.agent === 'string'
+    ? args.agent
+    : (process.env.MILESTR_AGENT ?? 'unknown');
   const paths = resolvePaths();
 
-  if (!args.agent && action !== 'help' && action !== undefined) {
-    throw new CliError('--agent is required (e.g., --agent planner, --agent builder, --agent operator)');
+  if (!args.agent && !process.env.MILESTR_AGENT && action !== 'help' && action !== undefined) {
+    throw new CliError('--agent is required (e.g., --agent planner, --agent builder, --agent operator). Set MILESTR_AGENT env var to set a default.');
   }
 
   await logCalled(paths, agent, action, args);
