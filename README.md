@@ -187,8 +187,8 @@ milestr/
 │   │   └── lock.ts       # File locking
 │   └── ui/
 │       └── dashboardHtml.ts  # HTML dashboard generator (KPIs + Timeline + Kanban + List)
-├── data.json             # Project data (gitignored)
-├── sample-data.json      # Example data structure with KPIs
+├── data.json             # Project data (generic sample at HEAD — replace with your own)
+├── sample-data.json      # Canonical generic sample (kept in sync with data.json at HEAD)
 ├── dashboard.html        # Generated HTML dashboard
 ├── package.json
 └── tsconfig.json
