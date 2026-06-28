@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Skill version matches package.json
+        run: npm run check-skill-version
+
       - name: Build (typecheck)
         run: npm run build
 

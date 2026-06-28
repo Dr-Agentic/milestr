@@ -9,7 +9,8 @@
     "dev": "tsx src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "check-skill-version": "bash scripts/check-skill-version.sh"
   },
   "dependencies": {
     "zod": "^3.24.1"
