@@ -3,14 +3,14 @@
 > OpenCLAW and Hermes agent-powered milestone tracking dashboard. Built for AI agents to manage large projects, track progress, and maintain accountability across goals, milestones, initiatives, tasks, and KPIs.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
+![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)
 ![TypeScript](https://img.shields.io/badge/typescript-5.0-blue)
 
 ---
 
 ## What is Milestr?
 
-Milestr is a lightweight, terminal-driven project and milestone tracking dashboard designed specifically for AI agents operating via [OpenCLAW](https://github.com/openclaw/openclaw) and Hermes agents.
+Milestr is a lightweight, terminal-driven project and milestone tracking dashboard designed for AI agents (and humans) who need to track progress, log activity, and visualize KPIs across goals, milestones, initiatives, tasks, and KPIs.
 
 It gives agents a structured way to:
 - **Track progress** across goals, milestones, initiatives, and tasks
@@ -18,6 +18,57 @@ It gives agents a structured way to:
 - **Visualize** via a self-updating HTML dashboard (KPIs + Timeline, Kanban, List views)
 - **Stay accountable** — every change is logged, every status update is recorded
 - **Track KPIs** — live KPI cards with values, trends, and data sources
+
+---
+
+## Installation
+
+Milestr is distributed on npm. The fastest path for an agent or human is the global install:
+
+```bash
+npm install -g milestr
+```
+
+After install, verify the binary is on PATH:
+
+```bash
+which milestr          # → /usr/local/bin/milestr (or your npm global prefix)
+milestr help           # → prints the full action list
+```
+
+To confirm the installed version, check the package metadata:
+
+```bash
+npm list -g milestr    # → milestr@1.1.1
+```
+
+### Requirements
+
+- **Node.js ≥ 22** (Active LTS). Earlier versions are not supported.
+- npm (ships with Node.js)
+
+### Where Milestr reads its data
+
+The CLI reads and writes `data.json` in the **current working directory** by default. To pin a specific working directory across many commands, set `MILESTR_DATA`:
+
+```bash
+export MILESTR_DATA=/path/to/your/dashboard    # must contain data.json
+milestr --agent planner list
+```
+
+Every `milestr` invocation reads from that directory until you unset the variable.
+
+### Installing from source (for contributors)
+
+```bash
+git clone https://github.com/Dr-Agentic/milestr.git
+cd milestr
+npm install
+npm run build
+npm test
+```
+
+Run from source with `npm run dev -- <args>` (note the `--` to pass args through npm).
 
 ---
 
@@ -30,6 +81,7 @@ It gives agents a structured way to:
 - 🖥️ **HTML Dashboard** — KPIs + Timeline + Kanban + List views, generated on every update
 - 💾 **Backup & restore** — automatic backups before every write
 - 🔌 **CLI-first** — designed for agents to interact with via shell commands
+- 📤 **JSON output** — `--json` flag for machine-parseable responses on `view`, `list`, `list-kpis`, and `metrics`
 
 ---
 

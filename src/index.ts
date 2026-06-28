@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import path from 'node:path';
+
 import { ACTIONS } from './actions/handlers';
 import { resolvePaths } from './data/config';
 import { FileLock } from './data/lock';
@@ -100,6 +102,20 @@ export async function run(argv: string[]): Promise<number> {
   const agent = typeof args.agent === 'string'
     ? args.agent
     : (process.env.MILESTR_AGENT ?? 'unknown');
+  // MILESTR_DATA env var lets agents pin a working directory without per-command
+  // --data flags. It accepts a directory path (containing data.json); the CLI
+  // chdirs into it before resolving paths.
+  if (process.env.MILESTR_DATA) {
+    const dataDir = path.resolve(process.env.MILESTR_DATA);
+    try {
+      process.chdir(dataDir);
+    } catch (error) {
+      throw new CliError(
+        `MILESTR_DATA points to "${dataDir}" but that directory does not exist or is not accessible: ${(error as Error).message}`
+      );
+    }
+  }
+
   const paths = resolvePaths();
 
   if (!args.agent && !process.env.MILESTR_AGENT && action !== 'help' && action !== undefined) {

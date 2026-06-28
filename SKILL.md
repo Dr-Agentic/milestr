@@ -1,7 +1,7 @@
 ---
 name: milestr-dashboard
 description: Use when operating a Milestr dashboard instance — a TypeScript CLI that tracks hierarchical tasks (goal → milestone → initiative → task) and KPIs for a single project. Triggers on requests like "create a milestone", "log KPI value", "update task status", "set progress", "export the dashboard", "publish to Cloudflare Pages", "check task list", "back up the data", or any work that writes to or reads from a `data.json` Milestr file. Load this skill before running `npm run dev` against a Milestr instance.
-version: 1.1.0
+version: 1.1.1
 author: Stewart (strategy agent for Morsy) and the Milestr maintainers
 license: MIT
 metadata:
@@ -26,6 +26,89 @@ This file is the agent-use guide for any agent that operates a Milestr dashboard
 For the simplest case — an agent that has no skill loader — just point the agent at `SKILL.md` in the repo and let it read the file directly. The conventions and CLI recipes in here are language-agnostic.
 
 The skill version tracks the engine version. After every `git pull` on the engine repo, re-read this file or re-run your framework's skill refresh procedure.
+
+## Install & Setup
+
+This section is for an agent or human setting up Milestr from scratch. Follow the steps in order.
+
+### 1. Verify Node.js version
+
+Milestr requires **Node.js ≥ 22** (Active LTS).
+
+```bash
+node --version
+# must print v22.x or later
+```
+
+If Node is missing or older, install it via your platform's package manager (nvm, brew, apt) before continuing.
+
+### 2. Install the `milestr` CLI
+
+The recommended install is via npm, which puts the `milestr` binary on your PATH:
+
+```bash
+npm install -g milestr
+```
+
+Verify:
+
+```bash
+which milestr              # must point to the binary
+milestr help               # prints the full action list
+npm list -g milestr        # → milestr@1.1.1 (confirms the installed version)
+```
+
+### 3. Create a dashboard directory
+
+Milestr reads and writes `data.json` in the **current working directory** by default. Create one:
+
+```bash
+mkdir -p ~/milestr/my-project
+cd ~/milestr/my-project
+cp /path/to/sample-data.json data.json   # optional starter data
+```
+
+### 4. Pin the data directory with `MILESTR_DATA` (recommended)
+
+To avoid `cd`-ing into the dashboard directory on every command, set `MILESTR_DATA`:
+
+```bash
+# In your shell rc (~/.zshrc, ~/.bashrc) or your agent's environment config:
+export MILESTR_DATA=~/milestr/my-project
+```
+
+Every `milestr` invocation will read from and write to `$MILESTR_DATA/data.json` until you unset it.
+
+### 5. Try a read-only command
+
+```bash
+milestr --agent your-name list
+# or, if MILESTR_AGENT is set:
+milestr list
+```
+
+You should see your tasks (or "Found 0 tasks" if data.json is empty).
+
+### 6. (Optional) Install from source
+
+If you need to modify the engine, install from the GitHub repo instead:
+
+```bash
+git clone https://github.com/Dr-Agentic/milestr.git
+cd milestr
+npm install
+npm run build
+npm test
+```
+
+From the source repo, use `npm run dev -- <args>` instead of `milestr <args>`.
+
+### Troubleshooting
+
+- **`milestr: command not found`** — npm's global bin dir isn't on PATH. Run `npm config get prefix`, then add `<prefix>/bin` to PATH.
+- **`Error: Failed to load data.json`** — CWD doesn't contain a `data.json`. Either `cd` into the right directory, set `MILESTR_DATA`, or run `milestr create --id ROOT --title "My Project" --type goal` to bootstrap one.
+- **`--agent is required`** — set `MILESTR_AGENT=<name>` or pass `--agent <name>` per command.
+- **Permission denied on global install** — use `sudo npm install -g milestr`, or set up npm to use a non-root prefix: https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally
 
 ## What Milestr does
 

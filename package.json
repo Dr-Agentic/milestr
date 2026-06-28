@@ -1,17 +1,47 @@
 {
-  "name": "dashboard-manager",
-  "version": "1.1.0",
-  "private": true,
+  "name": "milestr",
+  "version": "1.1.1",
+  "description": "Hierarchical goal, milestone, and KPI tracking CLI with auto-generated dashboard and Cloudflare Pages publishing",
   "type": "commonjs",
   "main": "dist/index.js",
+  "bin": {
+    "milestr": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "check-skill-version": "bash scripts/check-skill-version.sh"
+    "check-skill-version": "bash scripts/check-skill-version.sh",
+    "prepublishOnly": "npm run build"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dr-Agentic/milestr.git"
+  },
+  "homepage": "https://github.com/Dr-Agentic/milestr#readme",
+  "bugs": {
+    "url": "https://github.com/Dr-Agentic/milestr/issues"
+  },
+  "keywords": [
+    "milestones",
+    "goals",
+    "kpi",
+    "dashboard",
+    "cli",
+    "tracking",
+    "cloudflare-pages"
+  ],
+  "license": "MIT",
   "dependencies": {
     "zod": "^3.24.1"
   },

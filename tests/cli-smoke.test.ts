@@ -146,4 +146,29 @@ describe('CLI smoke', () => {
     expect(log).toMatch(/CALLED: explicit \| action=list \| agent=explicit/);
     expect(log).not.toMatch(/CALLED: env-agent/);
   });
+
+  it('reads MILESTR_DATA env var to locate the data directory', async () => {
+    // The CLI is invoked from /tmp (no data.json there). MILESTR_DATA points
+    // at the workspace, so the command should still find the sample data.
+    const result = runCli(
+      ['--agent', 'stewart', 'list'],
+      { MILESTR_DATA: workspace },
+      '/tmp'
+    );
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('Found 3 tasks');
+  });
+
+  it('throws CliError when MILESTR_DATA points at a missing directory', async () => {
+    const result = runCli(
+      ['--agent', 'stewart', 'list'],
+      { MILESTR_DATA: '/nonexistent/path/that/does/not/exist' },
+      '/tmp'
+    );
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('MILESTR_DATA');
+    expect(result.stderr).toContain('does not exist');
+  });
 });
