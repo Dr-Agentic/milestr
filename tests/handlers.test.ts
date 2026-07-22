@@ -48,6 +48,31 @@ describe('handlers', () => {
     expect(logSpy.mock.calls.flat().join(' ')).toContain('https://example.pages.dev');
   });
 
+  it('keeps both ROOT title representations in sync', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    const ctx = { agent: 'agent', paths };
+
+    await ACTIONS.title(ctx, { _: ['ROOT', 'Renamed project'] });
+
+    const current = JSON.parse(await fs.readFile(paths.dataFile, 'utf8'));
+    expect(current.tasks.ROOT.title).toBe('Renamed project');
+    expect(current.root.title).toBe('Renamed project');
+  });
+
+  it('does not change the root title when renaming another task', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    const ctx = { agent: 'agent', paths };
+
+    await ACTIONS.title(ctx, { _: ['I1', 'Renamed initiative'] });
+
+    const current = JSON.parse(await fs.readFile(paths.dataFile, 'utf8'));
+    expect(current.tasks.I1.title).toBe('Renamed initiative');
+    expect(current.tasks.ROOT.title).toBe('AI Agent Project');
+    expect(current.root.title).toBe('AI Agent Project');
+  });
+
   it('renders view, list, metrics, export, publish, and backup commands', async () => {
     const { ACTIONS } = await import('../src/actions/handlers');
     const { paths } = await createWorkspace();
