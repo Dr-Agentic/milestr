@@ -167,6 +167,10 @@ export const actionTitle: ActionHandler = async (ctx, args) => {
   const oldTitle = task.title;
   task.title = title;
 
+  if (id === 'ROOT') {
+    data.root.title = title;
+  }
+
   addActivityLog(data, id, 'Title changed: "' + oldTitle + '" → "' + title + '"', ctx.agent);
   const result = await saveData(ctx.paths, data, ctx.agent, 'title ' + id + ': "' + oldTitle + '" → "' + title + '"');
   log('Updated ' + id + ' title');
