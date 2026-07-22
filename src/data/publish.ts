@@ -174,13 +174,25 @@ function collectUrls(value: unknown, found: string[]): void {
   }
 }
 
-async function parsePagesDeployUrl(outputFilePath: string, stdout: string, stderr: string): Promise<string> {
-  const raw = await fs.readFile(outputFilePath, 'utf8');
+async function parsePagesDeployResult(
+  outputFilePath: string,
+  stdout: string,
+  stderr: string
+): Promise<{ url: string; pagesProject?: string }> {
+  let raw = '';
+  try {
+    raw = await fs.readFile(outputFilePath, 'utf8');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
+  }
+
   const entries = raw
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
-    .map((line) => JSON.parse(line) as { type?: string });
+    .map((line) => JSON.parse(line) as { type?: string; pages_project?: unknown });
 
   for (let index = entries.length - 1; index >= 0; index -= 1) {
     const entry = entries[index];
@@ -192,17 +204,37 @@ async function parsePagesDeployUrl(outputFilePath: string, stdout: string, stder
     collectUrls(entry, urls);
     const preferred = urls.find((url) => url.includes('.pages.dev')) ?? urls[0];
     if (preferred) {
-      return preferred;
+      const result: { url: string; pagesProject?: string } = { url: preferred };
+      if (typeof entry.pages_project === 'string') {
+        result.pagesProject = entry.pages_project;
+      }
+      return result;
     }
   }
 
   const combined = `${stdout}\n${stderr}`;
   const fallback = combined.match(/https?:\/\/[^\s"'<>]+/g)?.find((url) => url.includes('.pages.dev'));
   if (fallback) {
-    return fallback;
+    return { url: fallback };
   }
 
   throw new CliError('Cloudflare deploy succeeded but no deployment URL was found');
+}
+
+function warnIfCloudflareRenamedProject(requestedProject: string, actualProject?: string): void {
+  if (!actualProject || actualProject === requestedProject) {
+    return;
+  }
+
+  const expectedPrefix = `${requestedProject}-`;
+  if (!actualProject.startsWith(expectedPrefix)) {
+    return;
+  }
+
+  console.warn(
+    `[dashboard] WARNING: requested project name "${requestedProject}" was not available ` +
+    `on Cloudflare Pages; Cloudflare created "${actualProject}.pages.dev" instead.`
+  );
 }
 
 export async function publishDashboard(paths: DataPaths, data: DashboardData): Promise<string> {
@@ -222,7 +254,9 @@ export async function publishDashboard(paths: DataPaths, data: DashboardData): P
   }
 
   try {
-    return await parsePagesDeployUrl(outputFilePath, deploy.stdout, deploy.stderr);
+    const result = await parsePagesDeployResult(outputFilePath, deploy.stdout, deploy.stderr);
+    warnIfCloudflareRenamedProject(projectName, result.pagesProject);
+    return result.url;
   } finally {
     await fs.rm(outputFilePath, { force: true });
   }

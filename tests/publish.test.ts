@@ -166,6 +166,84 @@ describe('publishDashboard', () => {
     await expect(publishDashboard(paths, data)).rejects.toThrow('still exists');
   });
 
+  it('warns when Cloudflare reports a collision-renamed Pages project', async () => {
+    const { publishDashboard } = await import('../src/data/publish');
+    const paths = await createTempPaths();
+    const data = createSampleData();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await fs.writeFile(paths.cloudflareConfigFile, JSON.stringify({ projectName: 'clawy-ops' }), 'utf8');
+
+    spawnSyncMock
+      .mockReturnValueOnce({ status: 0, stdout: '', stderr: '' })
+      .mockImplementationOnce((_cmd, _args, options) => {
+        const outputPath = options.env.WRANGLER_OUTPUT_FILE_PATH as string;
+        syncFs.writeFileSync(
+          outputPath,
+          `${JSON.stringify({
+            type: 'pages-deploy',
+            pages_project: 'clawy-ops-pfx',
+            url: 'https://d067e90f.clawy-ops-pfx.pages.dev'
+          })}\n`,
+          'utf8'
+        );
+        return { status: 0, stdout: '', stderr: '' };
+      });
+
+    const url = await publishDashboard(paths, data);
+
+    expect(url).toBe('https://d067e90f.clawy-ops-pfx.pages.dev');
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('requested project name "clawy-ops"'));
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('clawy-ops-pfx.pages.dev'));
+  });
+
+  it('does not warn for the normal hash-prefixed deployment URL', async () => {
+    const { publishDashboard } = await import('../src/data/publish');
+    const paths = await createTempPaths();
+    const data = createSampleData();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await fs.writeFile(paths.cloudflareConfigFile, JSON.stringify({ projectName: 'clawy-ops' }), 'utf8');
+
+    spawnSyncMock
+      .mockReturnValueOnce({ status: 0, stdout: '', stderr: '' })
+      .mockImplementationOnce((_cmd, _args, options) => {
+        const outputPath = options.env.WRANGLER_OUTPUT_FILE_PATH as string;
+        syncFs.writeFileSync(
+          outputPath,
+          `${JSON.stringify({
+            type: 'pages-deploy',
+            pages_project: 'clawy-ops',
+            url: 'https://d067e90f.clawy-ops.pages.dev'
+          })}\n`,
+          'utf8'
+        );
+        return { status: 0, stdout: '', stderr: '' };
+      });
+
+    await expect(publishDashboard(paths, data)).resolves.toBe(
+      'https://d067e90f.clawy-ops.pages.dev'
+    );
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('falls back to stdout when Wrangler creates no output file', async () => {
+    const { publishDashboard } = await import('../src/data/publish');
+    const paths = await createTempPaths();
+    const data = createSampleData();
+    await fs.writeFile(paths.cloudflareConfigFile, JSON.stringify({ projectName: 'clawy-ops' }), 'utf8');
+
+    spawnSyncMock
+      .mockReturnValueOnce({ status: 0, stdout: '', stderr: '' })
+      .mockReturnValueOnce({
+        status: 0,
+        stdout: 'visit https://abc12345.clawy-ops.pages.dev now',
+        stderr: ''
+      });
+
+    await expect(publishDashboard(paths, data)).resolves.toBe(
+      'https://abc12345.clawy-ops.pages.dev'
+    );
+  });
+
   it('throws when deploy itself fails', async () => {
     const { publishDashboard } = await import('../src/data/publish');
     const paths = await createTempPaths();
