@@ -171,6 +171,9 @@ npm run dev -- --agent <name> export
 # Publish dashboard to Cloudflare Pages
 npm run dev -- --agent <name> publish
 
+# Change the pinned Pages project (creates it if needed, then deploys)
+npm run dev -- --agent <name> publish --project new-dashboard-name
+
 # Backups
 npm run dev -- --agent <name> backup
 npm run dev -- --agent <name> backups

@@ -88,7 +88,7 @@ function printHelp(): void {
     '  backups                                List available backups',
     '  metrics                                Show dashboard statistics',
     '  export                                 Export HTML dashboard (KPIs/Timeline/Kanban/List views)',
-    '  publish                                Publish the static dashboard to Cloudflare Pages',
+    '  publish [--project <name>]             Publish to Cloudflare Pages; optionally change project',
     '',
     'Examples:',
     '  npm run dev -- --agent planner status I1.2 ongoing "Working on it"',
@@ -96,6 +96,7 @@ function printHelp(): void {
     '  npm run dev -- --agent operator create-kpi --id kpi-signups --title "Weekly Sign-ups" --value 0 --unit users --source "Product analytics" --icon "people"',
     '  npm run dev -- --agent operator update-kpi --id kpi-signups --value 12 --trend up',
     '  npm run dev -- --agent operator list-kpis',
+    '  npm run dev -- --agent operator publish --project new-dashboard-name',
     ''
   ].join('\n'));
 }

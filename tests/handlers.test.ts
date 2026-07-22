@@ -68,6 +68,23 @@ describe('handlers', () => {
     expect(logSpy).toHaveBeenCalled();
   });
 
+  it('passes --project through the publish action', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    const ctx = { agent: 'agent', paths };
+
+    await ACTIONS.publish(ctx, { _: [], project: 'new-dashboard-name' });
+
+    expect(publishDashboardMock).toHaveBeenCalledWith(
+      paths,
+      expect.any(Object),
+      { project: 'new-dashboard-name' }
+    );
+    await expect(ACTIONS.publish(ctx, { _: [], project: true })).rejects.toThrow(
+      'publish --project requires <name>'
+    );
+  });
+
   it('creates, updates, and lists KPIs', async () => {
     const { ACTIONS } = await import('../src/actions/handlers');
     const { paths } = await createWorkspace();

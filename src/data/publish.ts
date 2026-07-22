@@ -113,7 +113,53 @@ async function ensureLoggedIn(paths: DataPaths): Promise<void> {
   }
 }
 
-async function resolveProjectName(paths: DataPaths, data: DashboardData): Promise<string> {
+async function ensureProjectExists(paths: DataPaths, projectName: string): Promise<void> {
+  const projects = runWrangler(['pages', 'project', 'list', '--json'], paths.dashboardDir);
+  if (projects.code !== 0) {
+    throw new CliError(projects.stderr.trim() || 'Failed to list Cloudflare Pages projects');
+  }
+
+  const projectNames = new Set(extractProjectNames(projects.stdout));
+  if (projectNames.has(projectName)) {
+    return;
+  }
+
+  const create = runWrangler(
+    ['pages', 'project', 'create', projectName, '--production-branch=main'],
+    paths.dashboardDir
+  );
+  if (create.code !== 0) {
+    throw new CliError(
+      create.stderr.trim() || create.stdout.trim() || 'Failed to create Cloudflare Pages project'
+    );
+  }
+}
+
+async function resolveProjectName(
+  paths: DataPaths,
+  data: DashboardData,
+  requestedProject?: string
+): Promise<string> {
+  if (requestedProject !== undefined) {
+    const candidate = requestedProject.trim();
+    if (!isValidProjectName(candidate)) {
+      throw new CliError('Invalid Cloudflare Pages project name: ' + requestedProject);
+    }
+
+    const existing = await loadConfig(paths);
+    if (existing?.projectName !== candidate) {
+      const from = existing ? ` from "${existing.projectName}"` : '';
+      console.warn(
+        `[dashboard] WARNING: changing the Cloudflare Pages project${from} to "${candidate}"; ` +
+        `the public URL will change to https://${candidate}.pages.dev.`
+      );
+    }
+
+    await ensureProjectExists(paths, candidate);
+    await saveConfig(paths, { projectName: candidate });
+    return candidate;
+  }
+
   const existing = await loadConfig(paths);
   if (existing) {
     return existing.projectName;
@@ -205,9 +251,13 @@ async function parsePagesDeployUrl(outputFilePath: string, stdout: string, stder
   throw new CliError('Cloudflare deploy succeeded but no deployment URL was found');
 }
 
-export async function publishDashboard(paths: DataPaths, data: DashboardData): Promise<string> {
+export async function publishDashboard(
+  paths: DataPaths,
+  data: DashboardData,
+  options: { project?: string } = {}
+): Promise<string> {
   await ensureLoggedIn(paths);
-  const projectName = await resolveProjectName(paths, data);
+  const projectName = await resolveProjectName(paths, data, options.project);
 
   const outputFilePath = path.join(os.tmpdir(), `milestr-wrangler-${Date.now()}.jsonl`);
   const deploy = runWrangler(

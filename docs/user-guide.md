@@ -38,6 +38,8 @@ npm run dev -- --agent your-name export
 
 `publish` uses `wrangler login` for Cloudflare authentication. On first publish, Milestr derives the Pages project name from the dashboard root title, creates the project if needed, and then deploys the generated `site/index.html`.
 
+Pass `publish --project <name>` to change the pinned Pages project. Milestr warns that the public URL is changing, reuses the project when it exists in your Cloudflare account, or creates it before deploying when it does not.
+
 The command prints the final Pages URL to stdout so agents and humans can reuse it safely.
 
 ## Data files
