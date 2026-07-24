@@ -195,6 +195,26 @@ export const actionDue: ActionHandler = async (ctx, args) => {
   logPublishedUrl(result.publishedUrl);
 };
 
+export const actionLog: ActionHandler = async (ctx, args) => {
+  const data = await loadData(ctx.paths);
+  const [id, ...noteParts] = args._;
+  const note = noteParts.join(' ').trim();
+
+  if (!id || !note) {
+    throw new CliError('log requires <id> "<message>"');
+  }
+
+  const task = getTaskOrThrow(data, id);
+  if (!task.activityLog) {
+    task.activityLog = [];
+  }
+  addActivityLog(data, id, note, ctx.agent);
+
+  const result = await saveData(ctx.paths, data, ctx.agent, 'log ' + id);
+  log('Logged action on ' + id);
+  logPublishedUrl(result.publishedUrl);
+};
+
 export const actionDelete: ActionHandler = async (ctx, args) => {
   const data = await loadData(ctx.paths);
   const [id] = args._;
@@ -508,6 +528,7 @@ export const ACTIONS: Record<string, ActionHandler> = {
   progress: actionProgress,
   title: actionTitle,
   due: actionDue,
+  log: actionLog,
   delete: actionDelete,
   recalc: actionRecalc,
   recalculate: actionRecalc,

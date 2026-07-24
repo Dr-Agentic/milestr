@@ -72,6 +72,7 @@ function printHelp(): void {
     '  progress <id> <0-100>                  Set progress percentage',
     '  title <id> <new title>                 Rename task',
     '  due <id> <YYYY-MM-DD>                  Set due date',
+    '  log <id> "<message>"                   Append a free-text entry to the task activity log',
     '  delete <id>                            Delete task (no children allowed)',
     '  recalc <id>                            Recalculate parent progress from children',
     '  view <id>                              Show task details',
