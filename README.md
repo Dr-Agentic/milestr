@@ -15,7 +15,7 @@ Milestr is a lightweight, terminal-driven project and milestone tracking dashboa
 It gives agents a structured way to:
 - **Track progress** across goals, milestones, initiatives, and tasks
 - **Log activity** with timestamps and agent attribution
-- **Visualize** via a self-updating HTML dashboard (KPIs + Timeline, Kanban, List views)
+- **Visualize** via a self-updating HTML dashboard (KPIs + Timeline, Tree, Kanban, List views)
 - **Stay accountable** — every change is logged, every status update is recorded
 - **Track KPIs** — live KPI cards with values, trends, and data sources
 
@@ -78,7 +78,7 @@ Run from source with `npm run dev -- <args>` (note the `--` to pass args through
 - 📊 **Auto-calculated progress** — parent progress cascades from children
 - 🕐 **Activity log** — every change is timestamped and attributed to an agent
 - 📈 **KPI tracking** — live KPI cards with values, trends, and data sources
-- 🖥️ **HTML Dashboard** — KPIs + Timeline + Kanban + List views, generated on every update
+- 🖥️ **HTML Dashboard** — KPIs + Timeline + Tree + Kanban + List views, generated on every update
 - 💾 **Backup & restore** — automatic backups before every write
 - 🔌 **CLI-first** — designed for agents to interact with via shell commands
 - 📤 **JSON output** — `--json` flag for machine-parseable responses on `view`, `list`, `list-kpis`, and `metrics`
@@ -118,6 +118,14 @@ npm run dev -- --agent your-agent update-kpi --id kpi-users --value 42 --trend u
 ```bash
 open dashboard.html
 ```
+
+The dashboard ships with five views:
+
+- **KPIs** — live KPI cards with values, trends, and sources
+- **Timeline** — milestones rendered as a horizontal lane with progress bars
+- **Tree** — right-to-left hierarchical tree of goals → milestones → initiatives → tasks, with progressive disclosure (click a node to expand, click its title to zoom in, `Esc` to zoom out, `+`/`-` to expand/collapse all)
+- **Kanban** — tasks grouped by status (not_started / analyzing / ongoing / done / blocked)
+- **List** — flat task list with id, title, status, progress, and parent
 
 ## Docs
 

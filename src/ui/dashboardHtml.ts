@@ -57,6 +57,121 @@ function milestoneNode(task: Task): string {
   ].join('\n');
 }
 
+// --- Tree view (issue #6) ---
+//
+// Builds a right-to-left hierarchical tree of the task graph. The root
+// sits on the right; children branch out to the left as the tree widens.
+// Each node starts collapsed, showing only the summary (icon, title,
+// progress %, status). Clicking the body of the node expands/collapses
+// its descendants. Clicking the title zooms in: that node becomes the
+// focal point and a breadcrumb is rendered above.
+//
+// Tree state is kept in module-scope closures below (renderTree* helpers)
+// so the function itself stays pure and the inline `<script>` block in
+// `exportDashboardHtml` can wire up handlers by id.
+
+interface TreeNode {
+  task: Task;
+  children: TreeNode[];
+}
+
+function buildTree(data: DashboardData): TreeNode | null {
+  const tasks = data.tasks;
+  const rootId = data.root.id;
+  const rootTask = tasks[rootId];
+  if (!rootTask) return null;
+
+  function build(id: string): TreeNode | null {
+    const task = tasks[id];
+    if (!task) return null;
+    const kids = (task.children || [])
+      .map(function (cid) { return build(cid); })
+      .filter(function (n): n is TreeNode { return n !== null; });
+    return { task: task, children: kids };
+  }
+
+  return build(rootId);
+}
+
+function statusBarColor(status: string): string {
+  switch (status) {
+    case 'done': return '#22c55e';
+    case 'ongoing': return '#3b82f6';
+    case 'analyzing': return '#f59e0b';
+    case 'blocked': return '#ef4444';
+    case 'not_started': default: return '#64748b';
+  }
+}
+
+function renderTreeNode(node: TreeNode): string {
+  const t = node.task;
+  const accent = statusBarColor(t.status);
+  const expandedCls = ''; // start collapsed
+  const hasChildren = node.children.length > 0;
+  const childrenHtml = hasChildren
+    ? '\n      <ul class="tree-children">' +
+        node.children.map(renderTreeNodeLi).join('\n') +
+      '\n      </ul>'
+    : '';
+  const due = t.dueDate ? '<span class="tree-due">Due: ' + esc(t.dueDate) + '</span>' : '';
+  const sub = t.subtitle ? '<div class="tree-subtitle">' + esc(t.subtitle) + '</div>' : '';
+  const log = (t.activityLog && t.activityLog.length > 0)
+    ? '<ul class="tree-log">' +
+        t.activityLog.slice(0, 5).map(function (e) {
+          const who = e.agent ? esc(e.agent) + ' · ' : '';
+          return '<li><span class="tree-log-meta">' + who + esc(new Date(e.date).toLocaleString()) + '</span> ' + esc(e.note) + '</li>';
+        }).join('') +
+      '</ul>'
+    : '';
+  return [
+    '<div class="tree-node ' + esc(t.status) + esc(expandedCls) + '" data-tree-id="' + esc(t.id) + '">',
+    '  <div class="tree-card" style="border-inline-start: 4px solid ' + accent + '">',
+    '    <button type="button" class="tree-toggle" data-tree-toggle="' + esc(t.id) + '" aria-label="Toggle ' + esc(t.title) + '">' + (hasChildren ? '▸' : '·') + '</button>',
+    '    <span class="tree-icon">' + esc(t.icon) + '</span>',
+    '    <div class="tree-body">',
+    '      <button type="button" class="tree-title" data-tree-zoom="' + esc(t.id) + '">' + esc(t.title) + '</button>',
+    '      <div class="tree-meta">',
+    '        <span class="tree-status ' + esc(t.status) + '">' + esc(t.status.replace('_', ' ')) + '</span>',
+    '        <span class="tree-progress">' + t.progress + '%</span>',
+              due,
+    '      </div>',
+            sub,
+            log,
+    '    </div>',
+    '  </div>',
+          childrenHtml,
+    '</div>'
+  ].join('\n');
+}
+
+function renderTreeNodeLi(node: TreeNode): string {
+  return '<li>' + renderTreeNode(node) + '</li>';
+}
+
+function renderTreeView(data: DashboardData): string {
+  const tree = buildTree(data);
+  if (!tree) return '<div class="tree-empty">No tasks to render.</div>';
+
+  const rootId = esc(tree.task.id);
+
+  return [
+    '<div class="tree-wrap" id="tree-wrap" data-tree-root="' + rootId + '">',
+    '  <nav class="tree-breadcrumb" id="tree-breadcrumb" aria-label="Tree focus path"></nav>',
+    '  <div class="tree-scroll" id="tree-scroll">',
+    '    <div class="tree-root" id="tree-root">',
+              renderTreeNode(tree),
+    '    </div>',
+    '  </div>',
+    '  <div class="tree-help">',
+    '    <span><kbd>Click body</kbd> expand/collapse</span>',
+    '    <span><kbd>Click title</kbd> zoom</span>',
+    '    <span><kbd>Esc</kbd> zoom out</span>',
+    '    <span><kbd>+</kbd>/<kbd>-</kbd> expand/collapse all</span>',
+    '  </div>',
+    '</div>'
+  ].join('\n');
+}
+
 function kanbanCol(status: string, items: Task[]): string {
   const itemsHtml = items.map(function(task) {
     const progressClass = task.status === 'done' ? ' done' : '';
@@ -110,6 +225,8 @@ export function exportDashboardHtml(data: DashboardData): string {
     .filter(function(task) { return task.id !== 'ROOT'; })
     .map(taskRow)
     .join('\n');
+
+  const treeHtml = renderTreeView(data);
 
   const kpiTabClass = kpis.length === 0 ? ' active' : '';
   const timelineTabClass = kpis.length > 0 ? ' active' : '';
@@ -204,7 +321,43 @@ export function exportDashboardHtml(data: DashboardData): string {
     '',
     '    .section { margin-bottom: 32px; }',
     '    .section h2 { font-size: 18px; margin-bottom: 16px; color: #94a3b8; }',
-    '',
+
+    '    /* Tree (issue #6) — RTL, progressive disclosure */',
+    '    .tree-wrap { background: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; direction: rtl; }',
+    '    .tree-breadcrumb { direction: ltr; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; color: #94a3b8; margin-bottom: 12px; min-height: 24px; }',
+    '    .tree-breadcrumb .crumb { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 4px 10px; cursor: pointer; color: #cbd5e1; font-family: inherit; font-size: 12px; }',
+    '    .tree-breadcrumb .crumb:hover { background: #334155; }',
+    '    .tree-breadcrumb .crumb.current { background: #3b82f6; color: white; border-color: #3b82f6; cursor: default; }',
+    '    .tree-breadcrumb .sep { color: #475569; }',
+    '    .tree-scroll { overflow: auto; max-height: 70vh; direction: rtl; padding: 8px 0; }',
+    '    .tree-root, .tree-children { list-style: none; margin: 0; padding: 0; }',
+    '    .tree-children { display: none; padding-inline-start: 20px; margin-top: 8px; border-inline-start: 1px dashed #334155; }',
+    '    .tree-node.expanded > .tree-children { display: block; }',
+    '    .tree-node.zoomed > .tree-card { box-shadow: 0 0 0 2px #3b82f6; }',
+    '    .tree-card { background: #0f172a; border-radius: 8px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; margin: 6px 0; direction: ltr; text-align: left; min-width: 220px; max-width: 320px; }',
+    '    .tree-toggle { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 14px; padding: 0 4px; line-height: 1; }',
+    '    .tree-toggle:hover { color: #f1f5f9; }',
+    '    .tree-icon { font-size: 18px; line-height: 1.4; }',
+    '    .tree-body { flex: 1; min-width: 0; }',
+    '    .tree-title { background: transparent; border: none; color: #f1f5f9; font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; text-align: start; font-family: inherit; }',
+    '    .tree-title:hover { color: #60a5fa; }',
+    '    .tree-meta { display: flex; gap: 8px; align-items: center; font-size: 11px; color: #94a3b8; margin-top: 4px; flex-wrap: wrap; }',
+    '    .tree-status { padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; }',
+    '    .tree-status.not_started { background: #334155; color: #94a3b8; }',
+    '    .tree-status.analyzing { background: #451a03; color: #fbbf24; }',
+    '    .tree-status.ongoing { background: #1e3a5f; color: #60a5fa; }',
+    '    .tree-status.done { background: #14532d; color: #4ade80; }',
+    '    .tree-status.blocked { background: #450a0a; color: #f87171; }',
+    '    .tree-progress { font-family: monospace; }',
+    '    .tree-due { font-size: 11px; color: #64748b; }',
+    '    .tree-subtitle { font-size: 12px; color: #94a3b8; margin-top: 6px; line-height: 1.4; }',
+    '    .tree-log { list-style: none; margin: 8px 0 0; padding: 0; border-top: 1px solid #1e293b; padding-top: 6px; }',
+    '    .tree-log li { font-size: 11px; color: #cbd5e1; padding: 3px 0; line-height: 1.4; }',
+    '    .tree-log-meta { color: #64748b; font-size: 10px; margin-inline-end: 4px; }',
+    '    .tree-empty { text-align: center; color: #475569; padding: 40px; font-size: 14px; }',
+    '    .tree-help { direction: ltr; display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid #334155; color: #64748b; font-size: 11px; }',
+    '    .tree-help kbd { background: #0f172a; border: 1px solid #334155; border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 10px; color: #cbd5e1; }',
+
     '    @media (max-width: 768px) {',
     '      .kanban { grid-template-columns: 1fr; }',
     '      .timeline { flex-direction: column; align-items: center; }',
@@ -225,6 +378,7 @@ export function exportDashboardHtml(data: DashboardData): string {
     '  <div class="tabs">',
     '    <button class="tab' + kpiTabClass + '" onclick="showView(\'kpis\', event)">KPIs</button>',
     '    <button class="tab' + timelineTabClass + '" onclick="showView(\'timeline\', event)">Timeline</button>',
+    '    <button class="tab" onclick="showView(\'tree\', event)">Tree</button>',
     '    <button class="tab" onclick="showView(\'kanban\', event)">Kanban</button>',
     '    <button class="tab" onclick="showView(\'list\', event)">List</button>',
     '  </div>',
@@ -258,6 +412,10 @@ export function exportDashboardHtml(data: DashboardData): string {
     '    </div>',
     '  </div>',
     '',
+    '  <div id="tree" class="view">',
+            treeHtml,
+    '  </div>',
+    '',
     '  <script>',
     '    function showView(viewId, event) {',
     '      document.querySelectorAll(\'.view\').forEach(function(v) { v.classList.remove(\'active\'); });',
@@ -265,6 +423,97 @@ export function exportDashboardHtml(data: DashboardData): string {
     '      document.getElementById(viewId).classList.add(\'active\');',
     '      if (event && event.target) event.target.classList.add(\'active\');',
     '    }',
+    '',
+    '    // Tree view (issue #6) — RTL progressive-disclosure tree',
+    '    (function() {',
+    '      var scroll = document.getElementById(\'tree-scroll\');',
+    '      if (!scroll) return;',
+    '      var breadcrumb = document.getElementById(\'tree-breadcrumb\');',
+    '      var rootId = document.getElementById(\'tree-wrap\').getAttribute(\'data-tree-root\');',
+    '      var focusId = rootId;',
+    '      var path = []; // ids from root -> focused node',
+    '',
+    '      function byId(id) {',
+    '        return scroll.querySelector(\'.tree-node[data-tree-id="\' + id + \'"]\');',
+    '      }',
+    '      function ancestorsOf(id) {',
+    '        var out = []; var n = byId(id);',
+    '        while (n && n !== scroll) {',
+    '          var p = n.parentElement; while (p && !p.classList.contains(\'tree-node\')) p = p.parentElement;',
+    '          if (!p) break;',
+    '          out.unshift(p.getAttribute(\'data-tree-id\'));',
+    '          n = p;',
+    '        }',
+    '        return out;',
+    '      }',
+    '      function renderBreadcrumb() {',
+    '        var html = \'\';',
+    '        for (var i = 0; i < path.length; i++) {',
+    '          var id = path[i];',
+    '          var node = byId(id);',
+    '          if (!node) continue;',
+    '          var label = node.querySelector(\'.tree-title\').textContent;',
+    '          var cls = \'crumb\' + (i === path.length - 1 ? \' current\' : \'\');',
+    '          var action = (i === path.length - 1) ? \'\' : \' data-tree-jump="\' + id + \'"\';',
+    '          html += (i > 0 ? \'<span class="sep">/</span>\' : \'\') +',
+    '                  \'<button type="button" class="\' + cls + \'"\' + action + \'>\' + label + \'</button>\';',
+    '        }',
+    '        breadcrumb.innerHTML = html;',
+    '      }',
+    '      function zoomTo(id) {',
+    '        path = ancestorsOf(id);',
+    '        scroll.querySelectorAll(\'.tree-node.zoomed\').forEach(function(n) { n.classList.remove(\'zoomed\'); });',
+    '        var node = byId(id);',
+    '        if (node) node.classList.add(\'zoomed\');',
+    '        scroll.querySelectorAll(\'.tree-node.expanded\').forEach(function(n) { n.classList.remove(\'expanded\'); });',
+    '        for (var i = 0; i < path.length; i++) { byId(path[i]).classList.add(\'expanded\'); }',
+    '        var focusNode = byId(focusId);',
+    '        if (focusNode && focusNode.querySelector(\'.tree-children\')) focusNode.classList.add(\'expanded\');',
+    '        renderBreadcrumb();',
+    '        if (node) node.scrollIntoView({ block: \'center\', inline: \'center\', behavior: \'smooth\' });',
+    '      }',
+    '',
+    '      scroll.addEventListener(\'click\', function(ev) {',
+    '        var tog = ev.target.closest(\'[data-tree-toggle]\');',
+    '        if (tog) {',
+    '          ev.stopPropagation();',
+    '          var id = tog.getAttribute(\'data-tree-toggle\');',
+    '          var n = byId(id);',
+    '          if (n) n.classList.toggle(\'expanded\');',
+    '          return;',
+    '        }',
+    '        var zoom = ev.target.closest(\'[data-tree-zoom]\');',
+    '        if (zoom) {',
+    '          ev.preventDefault();',
+    '          focusId = zoom.getAttribute(\'data-tree-zoom\');',
+    '          zoomTo(focusId);',
+    '          return;',
+    '        }',
+    '        var jump = ev.target.closest(\'[data-tree-jump]\');',
+    '        if (jump) {',
+    '          focusId = jump.getAttribute(\'data-tree-jump\');',
+    '          zoomTo(focusId);',
+    '        }',
+    '      });',
+    '',
+    '      document.addEventListener(\'keydown\', function(ev) {',
+    '        if (ev.target && /input|textarea|select/i.test(ev.target.tagName || \'\')) return;',
+    '        var treeActive = document.getElementById(\'tree\').classList.contains(\'active\');',
+    '        if (!treeActive) return;',
+    '        if (ev.key === \'Escape\' && path.length > 1) {',
+    '          path.pop(); focusId = path[path.length - 1]; zoomTo(focusId);',
+    '        } else if (ev.key === \'+\') {',
+    '          scroll.querySelectorAll(\'.tree-node\').forEach(function(n) {',
+    '            if (n.querySelector(\'.tree-children\')) n.classList.add(\'expanded\');',
+    '          });',
+    '        } else if (ev.key === \'-\') {',
+    '          scroll.querySelectorAll(\'.tree-node\').forEach(function(n) { n.classList.remove(\'expanded\'); });',
+    '        }',
+    '      });',
+    '',
+    '      path = [rootId];',
+    '      renderBreadcrumb();',
+    '    })();',
     '  </script>',
     '</body>',
     '</html>'
