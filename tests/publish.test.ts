@@ -236,4 +236,74 @@ describe('publishDashboard', () => {
 
     await expect(publishDashboard(paths, data, { project: 'Bad Name!' })).rejects.toThrow('Invalid --project name');
   });
+
+  it('warns loudly when the deployed url is hex-prefixed (CF collision)', async () => {
+    const { publishDashboard } = await import('../src/data/publish');
+    const paths = await createTempPaths();
+    const data = createSampleData();
+    // pin a project name so the test doesn't go through the create-from-scratch path
+    await fs.writeFile(paths.cloudflareConfigFile, JSON.stringify({ projectName: 'ai-agent-project' }), 'utf8');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    spawnSyncMock
+      .mockReturnValueOnce({ status: 0, stdout: '', stderr: '' })
+      .mockImplementationOnce((_cmd, args, options) => {
+        expect(args).toContain('--project-name=ai-agent-project');
+        const outputPath = options.env.WRANGLER_OUTPUT_FILE_PATH as string;
+        syncFs.writeFileSync(outputPath, `${JSON.stringify({ type: 'pages-deploy', deployment: { url: 'https://d067e90f.ai-agent-project.pages.dev' } })}\n`, 'utf8');
+        return { status: 0, stdout: '', stderr: '' };
+      });
+
+    const url = await publishDashboard(paths, data);
+    expect(url).toBe('https://d067e90f.ai-agent-project.pages.dev');
+    const logged = logSpy.mock.calls.map((c) => String(c[0])).join('\n');
+    expect(logged).toContain('WARNING: requested project name "ai-agent-project" was not available');
+    expect(logged).toContain('https://d067e90f.ai-agent-project.pages.dev');
+    expect(logged).toContain('milestr publish --project <unique-name>');
+  });
+
+  it('does not warn for a non-prefixed deployment url', async () => {
+    const { publishDashboard } = await import('../src/data/publish');
+    const paths = await createTempPaths();
+    const data = createSampleData();
+    await fs.writeFile(paths.cloudflareConfigFile, JSON.stringify({ projectName: 'ai-agent-project' }), 'utf8');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    spawnSyncMock
+      .mockReturnValueOnce({ status: 0, stdout: '', stderr: '' })
+      .mockImplementationOnce((_cmd, _args, options) => {
+        const outputPath = options.env.WRANGLER_OUTPUT_FILE_PATH as string;
+        syncFs.writeFileSync(outputPath, `${JSON.stringify({ type: 'pages-deploy', deployment: { url: 'https://ai-agent-project.pages.dev' } })}\n`, 'utf8');
+        return { status: 0, stdout: '', stderr: '' };
+      });
+
+    const url = await publishDashboard(paths, data);
+    expect(url).toBe('https://ai-agent-project.pages.dev');
+    const logged = logSpy.mock.calls.map((c) => String(c[0])).join('\n');
+    expect(logged).not.toContain('WARNING');
+  });
+
+  it('does not false-positive on slugs that incidentally contain hex-looking characters', async () => {
+    const { publishDashboard } = await import('../src/data/publish');
+    const paths = await createTempPaths();
+    const data = createSampleData();
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    // a slug whose first 8 chars look hex-ish but the prefix is *not* exactly
+    // 8 hex chars followed by a "." — this is the false-positive trap.
+    const weirdProject = 'abc123-pages-dev';
+    await fs.writeFile(paths.cloudflareConfigFile, JSON.stringify({ projectName: weirdProject }), 'utf8');
+
+    spawnSyncMock
+      .mockReturnValueOnce({ status: 0, stdout: '', stderr: '' })
+      .mockImplementationOnce((_cmd, _args, options) => {
+        const outputPath = options.env.WRANGLER_OUTPUT_FILE_PATH as string;
+        syncFs.writeFileSync(outputPath, `${JSON.stringify({ type: 'pages-deploy', deployment: { url: `https://${weirdProject}.pages.dev` } })}\n`, 'utf8');
+        return { status: 0, stdout: '', stderr: '' };
+      });
+
+    const url = await publishDashboard(paths, data);
+    expect(url).toBe(`https://${weirdProject}.pages.dev`);
+    const logged = logSpy.mock.calls.map((c) => String(c[0])).join('\n');
+    expect(logged).not.toContain('WARNING');
+  });
 });

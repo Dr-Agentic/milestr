@@ -232,6 +232,30 @@ async function parsePagesDeployUrl(outputFilePath: string, stdout: string, stder
   throw new CliError('Cloudflare deploy succeeded but no deployment URL was found');
 }
 
+function isHexPrefixedSubdomain(hostname: string, expectedProject: string): boolean {
+  // Cloudflare Pages appends an 8-char hex prefix to a taken slug, e.g.
+  // "d067e90f.clawy-ops.pages.dev" when "clawy-ops" is unavailable.
+  // Match an exact 8-hex prefix + "." + expectedProject + ".pages.dev"
+  // (not just "starts with" — that would false-positive on slug-with-hyphen
+  // collisions like "myproject-foo.pages.dev" if the expected is "project-foo").
+  const escaped = expectedProject.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^[a-f0-9]{8}\\.${escaped}\\.pages\\.dev$`, 'i').test(hostname);
+}
+
+function warnIfHexPrefixed(deployedUrl: string, expectedProject: string): void {
+  let hostname: string;
+  try {
+    hostname = new URL(deployedUrl).hostname;
+  } catch {
+    return;
+  }
+  if (isHexPrefixedSubdomain(hostname, expectedProject)) {
+    console.log(`[dashboard] WARNING: requested project name "${expectedProject}" was not available`);
+    console.log(`[dashboard]          on Cloudflare Pages; deploying to "${deployedUrl}".`);
+    console.log(`[dashboard]          To use the unprefixed name, change the project with \`milestr publish --project <unique-name>\` or pick a different pin in .milestr-cloudflare.json.`);
+  }
+}
+
 export interface PublishOptions {
   /** Override the Cloudflare Pages project name (persists in the pin file). */
   project?: string;
@@ -258,7 +282,9 @@ export async function publishDashboard(
   }
 
   try {
-    return await parsePagesDeployUrl(outputFilePath, deploy.stdout, deploy.stderr);
+    const deployedUrl = await parsePagesDeployUrl(outputFilePath, deploy.stdout, deploy.stderr);
+    warnIfHexPrefixed(deployedUrl, projectName);
+    return deployedUrl;
   } finally {
     await fs.rm(outputFilePath, { force: true });
   }
