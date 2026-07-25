@@ -113,8 +113,35 @@ async function ensureLoggedIn(paths: DataPaths): Promise<void> {
   }
 }
 
-async function resolveProjectName(paths: DataPaths, data: DashboardData): Promise<string> {
+async function resolveProjectName(paths: DataPaths, data: DashboardData, override?: string): Promise<string> {
   const existing = await loadConfig(paths);
+
+  if (override) {
+    if (!isValidProjectName(override)) {
+      throw new CliError(`Invalid --project name "${override}": must match [a-z0-9](?:[a-z0-9-]{0,56}[a-z0-9])?`);
+    }
+
+    const projects = runWrangler(['pages', 'project', 'list', '--json'], paths.dashboardDir);
+    if (projects.code !== 0) {
+      throw new CliError(projects.stderr.trim() || 'Failed to list Cloudflare Pages projects');
+    }
+    const projectNames = new Set(extractProjectNames(projects.stdout));
+
+    if (!projectNames.has(override)) {
+      const create = runWrangler(['pages', 'project', 'create', override, '--production-branch=main'], paths.dashboardDir);
+      if (create.code !== 0) {
+        throw new CliError(create.stderr.trim() || create.stdout.trim() || `Failed to create Cloudflare Pages project "${override}"`);
+      }
+    }
+
+    if (existing && existing.projectName !== override) {
+      console.log(`[dashboard] WARNING: project name changed from "${existing.projectName}" to "${override}". URL will change.`);
+    }
+
+    await saveConfig(paths, { projectName: override });
+    return override;
+  }
+
   if (existing) {
     return existing.projectName;
   }
@@ -205,9 +232,18 @@ async function parsePagesDeployUrl(outputFilePath: string, stdout: string, stder
   throw new CliError('Cloudflare deploy succeeded but no deployment URL was found');
 }
 
-export async function publishDashboard(paths: DataPaths, data: DashboardData): Promise<string> {
+export interface PublishOptions {
+  /** Override the Cloudflare Pages project name (persists in the pin file). */
+  project?: string;
+}
+
+export async function publishDashboard(
+  paths: DataPaths,
+  data: DashboardData,
+  options: PublishOptions = {}
+): Promise<string> {
   await ensureLoggedIn(paths);
-  const projectName = await resolveProjectName(paths, data);
+  const projectName = await resolveProjectName(paths, data, options.project);
 
   const outputFilePath = path.join(os.tmpdir(), `milestr-wrangler-${Date.now()}.jsonl`);
   const deploy = runWrangler(

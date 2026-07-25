@@ -177,4 +177,63 @@ describe('publishDashboard', () => {
 
     await expect(publishDashboard(paths, createSampleData())).rejects.toThrow('deploy failed');
   });
+
+  it('uses --project override when the project already exists on CF', async () => {
+    const { publishDashboard } = await import('../src/data/publish');
+    const paths = await createTempPaths();
+    const data = createSampleData();
+    await fs.writeFile(paths.cloudflareConfigFile, JSON.stringify({ projectName: 'old-name' }), 'utf8');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    spawnSyncMock
+      .mockReturnValueOnce({ status: 0, stdout: '', stderr: '' })
+      .mockReturnValueOnce({ status: 0, stdout: JSON.stringify([{ name: 'new-name' }]), stderr: '' })
+      .mockImplementationOnce((_cmd, args, options) => {
+        expect(args).toContain('--project-name=new-name');
+        const outputPath = options.env.WRANGLER_OUTPUT_FILE_PATH as string;
+        syncFs.writeFileSync(outputPath, `${JSON.stringify({ type: 'pages-deploy', deployment: { url: 'https://new-name.pages.dev' } })}\n`, 'utf8');
+        return { status: 0, stdout: '', stderr: '' };
+      });
+
+    const url = await publishDashboard(paths, data, { project: 'new-name' });
+    expect(url).toBe('https://new-name.pages.dev');
+    expect(spawnSyncMock).toHaveBeenCalledTimes(3);
+    expect(logSpy.mock.calls.flat().join(' ')).toContain('WARNING: project name changed from "old-name" to "new-name"');
+    const saved = JSON.parse(await fs.readFile(paths.cloudflareConfigFile, 'utf8'));
+    expect(saved.projectName).toBe('new-name');
+  });
+
+  it('creates the project on CF when --project override is not yet pinned', async () => {
+    const { publishDashboard } = await import('../src/data/publish');
+    const paths = await createTempPaths();
+    const data = createSampleData();
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    spawnSyncMock
+      .mockReturnValueOnce({ status: 0, stdout: '', stderr: '' })
+      .mockReturnValueOnce({ status: 0, stdout: '[]', stderr: '' })
+      .mockReturnValueOnce({ status: 0, stdout: '', stderr: '' })
+      .mockImplementationOnce((_cmd, _args, options) => {
+        const outputPath = options.env.WRANGLER_OUTPUT_FILE_PATH as string;
+        syncFs.writeFileSync(outputPath, `${JSON.stringify({ type: 'pages-deploy', deployment: { url: 'https://fresh-name.pages.dev' } })}\n`, 'utf8');
+        return { status: 0, stdout: '', stderr: '' };
+      });
+
+    const url = await publishDashboard(paths, data, { project: 'fresh-name' });
+    expect(url).toBe('https://fresh-name.pages.dev');
+    expect(spawnSyncMock.mock.calls[2]?.[1]).toEqual(['wrangler', 'pages', 'project', 'create', 'fresh-name', '--production-branch=main']);
+    expect(logSpy.mock.calls.flat().join(' ')).not.toContain('WARNING: project name changed');
+    const saved = JSON.parse(await fs.readFile(paths.cloudflareConfigFile, 'utf8'));
+    expect(saved.projectName).toBe('fresh-name');
+  });
+
+  it('rejects an invalid --project override before calling wrangler', async () => {
+    const { publishDashboard } = await import('../src/data/publish');
+    const paths = await createTempPaths();
+    const data = createSampleData();
+
+    spawnSyncMock.mockReturnValueOnce({ status: 0, stdout: '', stderr: '' });
+
+    await expect(publishDashboard(paths, data, { project: 'Bad Name!' })).rejects.toThrow('Invalid --project name');
+  });
 });

@@ -411,10 +411,13 @@ export const actionExport: ActionHandler = async (ctx) => {
   log('Exported dashboard.html');
 };
 
-export const actionPublish: ActionHandler = async (ctx) => {
+export const actionPublish: ActionHandler = async (ctx, args) => {
   const data = await loadData(ctx.paths);
   await saveStaticSite(ctx.paths, data);
-  const publishedUrl = await publishDashboard(ctx.paths, data);
+  const overrideProject = typeof args.project === 'string' && args.project ? args.project : null;
+  const publishedUrl = overrideProject
+    ? await publishDashboard(ctx.paths, data, { project: overrideProject })
+    : await publishDashboard(ctx.paths, data);
   logPublishedUrl(publishedUrl);
 };
 
