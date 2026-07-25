@@ -143,6 +143,9 @@ npm run dev -- --agent <name> progress <id> <0-100>
 # Set due date
 npm run dev -- --agent <name> due <id> YYYY-MM-DD
 
+# Append a free-text entry to a task's activity log
+npm run dev -- --agent <name> log <id> "<message>"
+
 # List tasks
 npm run dev -- --agent <name> list [--status ongoing] [--type milestone]
 

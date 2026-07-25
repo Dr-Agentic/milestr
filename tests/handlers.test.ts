@@ -48,6 +48,36 @@ describe('handlers', () => {
     expect(logSpy.mock.calls.flat().join(' ')).toContain('https://example.pages.dev');
   });
 
+  it('appends free-text log entries to a task via the log action', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    const ctx = { agent: 'agent', paths };
+
+    await ACTIONS.log(ctx, { _: ['I1', 'drafted the API spec for review'] });
+    await ACTIONS.log(ctx, { _: ['I1', 'merged PR #42'] });
+
+    const current = JSON.parse(await fs.readFile(paths.dataFile, 'utf8'));
+    // addActivityLog prepends (newest first); the most recent write is at index 0
+    expect(current.tasks.I1.activityLog[0]).toMatchObject({
+      agent: 'agent',
+      note: 'merged PR #42'
+    });
+    expect(current.tasks.I1.activityLog[1]).toMatchObject({
+      agent: 'agent',
+      note: 'drafted the API spec for review'
+    });
+  });
+
+  it('refuses to log without an id or a message', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    const ctx = { agent: 'agent', paths };
+
+    await expect(ACTIONS.log(ctx, { _: [] })).rejects.toThrow('log requires <id>');
+    await expect(ACTIONS.log(ctx, { _: ['I1'] })).rejects.toThrow('log requires <id>');
+    await expect(ACTIONS.log(ctx, { _: ['missing', 'nope'] })).rejects.toThrow('Task not found');
+  });
+
   it('keeps both ROOT title representations in sync', async () => {
     const { ACTIONS } = await import('../src/actions/handlers');
     const { paths } = await createWorkspace();
