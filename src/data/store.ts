@@ -1,19 +1,29 @@
 import fs from 'node:fs/promises';
 import { ZodError } from 'zod';
 import type { DataPaths, DashboardData, SaveResult } from '../types';
-import { ValidationError } from '../errors';
+import { DashboardError, ValidationError } from '../errors';
 import { createBackup } from './backup';
 import { validateDashboardData } from './schema';
 import { exportDashboardHtml } from '../ui/dashboardHtml';
 import { logChange, logToFile } from './logger';
 import { publishDashboard } from './publish';
+import { CURRENT_DATA_VERSION, migrateData } from './migrations';
 
 export async function loadData(paths: DataPaths): Promise<DashboardData> {
   try {
     const raw = await fs.readFile(paths.dataFile, 'utf8');
-    return validateData(JSON.parse(raw));
+    const migration = migrateData(JSON.parse(raw));
+    const data = validateData(migration.data);
+
+    if (migration.migrated) {
+      const backupName = await createBackup(paths);
+      await fs.writeFile(paths.dataFile, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+      await logToFile(paths, `MIGRATION: ${migration.fromVersion ?? 'unversioned'} → ${CURRENT_DATA_VERSION} (backup ${backupName})`);
+    }
+
+    return data;
   } catch (error) {
-    if (error instanceof ValidationError) {
+    if (error instanceof DashboardError) {
       throw error;
     }
     throw new ValidationError(`Failed to load data.json: ${(error as Error).message}`);
@@ -42,6 +52,7 @@ export async function saveData(paths: DataPaths, data: DashboardData, agent: str
   const backupName = await createBackup(paths);
   await logToFile(paths, `INFO: backup created ${backupName}`);
 
+  data.meta.version = CURRENT_DATA_VERSION;
   data.meta.lastUpdated = new Date().toISOString();
   validateData(data);
 

@@ -39,7 +39,7 @@ milestr help           # → prints the full action list
 To confirm the installed version, check the package metadata:
 
 ```bash
-npm list -g milestr    # → milestr@1.1.1
+npm list -g milestr    # → milestr@1.2.1
 ```
 
 ### Requirements
@@ -80,6 +80,7 @@ Run from source with `npm run dev -- <args>` (note the `--` to pass args through
 - 📈 **KPI tracking** — live KPI cards with values, trends, and data sources
 - 🖥️ **HTML Dashboard** — KPIs + Timeline + Tree + Kanban + List views, generated on every update
 - 💾 **Backup & restore** — automatic backups before every write
+- 🔄 **Automatic migrations** — upgrades older `data.json` files to the executable's data version
 - 🔌 **CLI-first** — designed for agents to interact with via shell commands
 - 📤 **JSON output** — `--json` flag for machine-parseable responses on `view`, `list`, `list-kpis`, and `metrics`
 
@@ -196,7 +197,7 @@ The dashboard stores its state in `data.json`:
 
 ```json
 {
-  "meta": { "lastUpdated": "2026-04-12T00:00:00Z", "version": "1.1" },
+  "meta": { "lastUpdated": "2026-04-12T00:00:00Z", "version": "1.2.1" },
   "root": { /* Goal-level root task */ },
   "tasks": {
     "M1": { /* milestone task */ },
@@ -207,6 +208,20 @@ The dashboard stores its state in `data.json`:
   }
 }
 ```
+
+### Data migrations
+
+`meta.version` is required and tracks the Milestr executable version that last
+wrote the file. Every CLI command checks the stored version before validation:
+
+- Older supported versions are migrated automatically and persisted back to `data.json`.
+- A backup is created before the migration and the operation is recorded in `dashboard.log`.
+- A dashboard created by a newer Milestr executable is rejected until Milestr is upgraded.
+
+When the data shape changes, add a migration module under
+`src/data/migrations/`, register its source version in
+`src/data/migrations/index.ts`, and add a regression test before changing the
+schema.
 
 ---
 

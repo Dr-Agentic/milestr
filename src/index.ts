@@ -84,6 +84,8 @@ function printHelp(): void {
     '  list-kpis                              List all KPIs',
     '',
     'Dashboard Actions:',
+    '  init [--id <id>] [--title <title>] [--icon <emoji>] [--minimal|--seed <path>] [--force]  Bootstrap a new data.json',
+    '  init --data-file <path> [--seed <path>] [--force]                                Bootstrap at a specific path',
     '  backup                                 Create backup',
     '  restore <timestamp>                    Restore from backup',
     '  backups                                List available backups',

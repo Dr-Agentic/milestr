@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Setup Node ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -35,6 +37,9 @@ jobs:
 
       - name: Build (typecheck)
         run: npm run build
+
+      - name: Migration contract
+        run: npm run check-migrations
 
       - name: Test
         run: npm test

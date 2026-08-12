@@ -33,6 +33,39 @@ describe('store', () => {
     await expect(loadData(paths)).rejects.toBeInstanceOf(ValidationError);
   });
 
+  it('automatically migrates older data to the executable version before loading', async () => {
+    const { CURRENT_DATA_VERSION } = await import('../src/data/migrations');
+    const { loadData } = await import('../src/data/store');
+    const paths = await createTempPaths();
+    const olderData = createSampleData();
+    olderData.meta.version = '1.1';
+    await writeData(paths, olderData);
+
+    const migrated = await loadData(paths);
+    const persisted = await readJson<typeof migrated>(paths.dataFile);
+
+    expect(migrated.meta.version).toBe(CURRENT_DATA_VERSION);
+    expect(persisted.meta.version).toBe(CURRENT_DATA_VERSION);
+    expect((await fs.readdir(paths.backupDir)).some((name) => name.startsWith('data-'))).toBe(true);
+    expect(await fs.readFile(paths.logFile, 'utf8')).toContain('MIGRATION: 1.1 → ' + CURRENT_DATA_VERSION);
+  });
+
+  it('migrates unversioned legacy data and rejects data newer than the executable', async () => {
+    const { CURRENT_DATA_VERSION } = await import('../src/data/migrations');
+    const { loadData } = await import('../src/data/store');
+    const paths = await createTempPaths();
+    const legacyData = createSampleData();
+    delete legacyData.meta.version;
+    await writeData(paths, legacyData);
+
+    await expect(loadData(paths)).resolves.toMatchObject({ meta: { version: CURRENT_DATA_VERSION } });
+
+    const futureData = createSampleData();
+    futureData.meta.version = '999.0.0';
+    await writeData(paths, futureData);
+    await expect(loadData(paths)).rejects.toThrow('Data version 999.0.0 is newer than this Milestr executable');
+  });
+
   it('writes static html output to both local files', async () => {
     const { saveStaticSite } = await import('../src/data/store');
     const paths = await createTempPaths();

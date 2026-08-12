@@ -9,7 +9,7 @@ export function createSampleData(): DashboardData {
     meta: {
       lastUpdated: '2026-04-13T02:47:41.771Z',
       updateFrequency: 'hourly',
-      version: '1.1'
+      version: '1.2.1'
     },
     root: {
       id: 'ROOT',

@@ -12,6 +12,13 @@ export class ValidationError extends DashboardError {
   }
 }
 
+export class MigrationError extends DashboardError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'MigrationError';
+  }
+}
+
 export class NotFoundError extends DashboardError {
   constructor(message: string) {
     super(message);

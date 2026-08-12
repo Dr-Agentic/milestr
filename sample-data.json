@@ -2,7 +2,7 @@
   "meta": {
     "lastUpdated": "2026-04-12T00:00:00.000Z",
     "updateFrequency": "hourly",
-    "version": "1.1"
+    "version": "1.2.1"
   },
   "root": {
     "id": "ROOT",

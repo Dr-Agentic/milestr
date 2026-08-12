@@ -1,9 +1,12 @@
-import type { ActionContext, DashboardData, KPI, Metrics, ParsedArgs, Task, TaskStatus, TaskType, TrendDirection } from '../types';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import type { ActionContext, DataPaths, DashboardData, KPI, Metrics, ParsedArgs, Task, TaskStatus, TaskType, TrendDirection } from '../types';
 import { VALID_STATUSES } from '../types';
 import { CliError, ConflictError } from '../errors';
 import { createBackup, listBackups, restoreBackup } from '../data/backup';
 import { log } from '../data/logger';
 import { loadData, saveData, saveStaticSite, validateData } from '../data/store';
+import { CURRENT_DATA_VERSION } from '../data/migrations';
 import { publishDashboard } from '../data/publish';
 import { addActivityLog, cascadeUpdate, getTaskOrThrow, recalculateProgress, updateParentStatus } from './utils';
 
@@ -341,7 +344,9 @@ export const actionRestore: ActionHandler = async (ctx, args) => {
     throw new CliError('Backup not found or unreadable: ' + timestamp + ' (' + (error as Error).message + ')');
   }
 
-  validateData(restored);
+  // Re-load through the normal data path so restoring an older backup also
+  // receives the same automatic migration as every other CLI command.
+  restored = await loadData(ctx.paths);
   await saveStaticSite(ctx.paths, restored);
   const publishedUrl = await publishDashboard(ctx.paths, restored);
   log('Restored from backup: ' + timestamp);
@@ -525,6 +530,75 @@ export const actionListKpis: ActionHandler = async (ctx, args) => {
   console.log('');
 };
 
+export const actionInit: ActionHandler = async (ctx, args) => {
+  const id = typeof args.id === 'string' ? args.id : 'ROOT';
+  const title = typeof args.title === 'string' ? args.title : 'My Dashboard';
+  const icon = typeof args.icon === 'string' ? args.icon : '🎯';
+  const force = args.force === true;
+  const minimal = args.minimal === true;
+  const seedPath = typeof args.seed === 'string' ? args.seed : null;
+  const explicitFile = typeof args['data-file'] === 'string' ? args['data-file'] : null;
+  const jsonMode = args.json === true || args.json === 'true';
+  const targetPath = explicitFile
+    ? path.resolve(explicitFile)
+    : ctx.paths.dataFile;
+
+  if (await dataExists(targetPath) && !force) {
+    throw new ConflictError(
+      `data.json already exists at ${targetPath}. ` +
+      `Remove it first, or re-run with --force, or use --data <dir> to initialize a different directory.`
+    );
+  }
+
+  const now = new Date().toISOString();
+  let data: DashboardData;
+
+  if (seedPath && !minimal) {
+    const raw = await fs.readFile(seedPath, 'utf8');
+    const parsed = JSON.parse(raw);
+    data = validateData(parsed);
+    data.meta = {
+      lastUpdated: now,
+      updateFrequency: data.meta?.updateFrequency ?? 'hourly',
+      version: CURRENT_DATA_VERSION
+    };
+  } else {
+    data = {
+      meta: {
+        lastUpdated: now,
+        updateFrequency: 'hourly',
+        version: CURRENT_DATA_VERSION
+      },
+      root: { id, title, type: 'goal', status: 'ongoing', dueDate: null, icon, parent: null, children: [] },
+      tasks: {
+        [id]: {
+          id, title,
+          subtitle: 'Initialized with milestr init',
+          type: 'goal', status: 'ongoing', progress: 0,
+          dueDate: null, icon, parent: null, children: [], activityLog: []
+        }
+      },
+      kpis: {}
+    };
+  }
+
+  await fs.mkdir(path.dirname(targetPath), { recursive: true });
+  await fs.writeFile(targetPath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+  await saveStaticSite(ctx.paths, data);
+  const publishedUrl = await publishDashboard(ctx.paths, data);
+
+  if (jsonMode) {
+    console.log(JSON.stringify(data, null, 2));
+  } else {
+    log('Initialized: ' + targetPath);
+    if (publishedUrl) log('Dashboard: ' + publishedUrl);
+  }
+};
+
+async function dataExists(filePath: string): Promise<boolean> {
+  try { await fs.access(filePath); return true; } catch { return false; }
+}
+
 export const ACTIONS: Record<string, ActionHandler> = {
   create: actionCreate,
   status: actionStatus,
@@ -545,5 +619,6 @@ export const ACTIONS: Record<string, ActionHandler> = {
   publish: actionPublish,
   'create-kpi': actionCreateKpi,
   'update-kpi': actionUpdateKpi,
-  'list-kpis': actionListKpis
+  'list-kpis': actionListKpis,
+  init: actionInit
 };
