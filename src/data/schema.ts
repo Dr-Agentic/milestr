@@ -48,7 +48,7 @@ export const dashboardDataSchema = z.object({
   meta: z.object({
     lastUpdated: z.string(),
     updateFrequency: z.string().optional(),
-    version: z.string().optional()
+    version: z.string()
   }),
   root: rootSchema,
   tasks: z.record(taskSchema),

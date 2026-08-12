@@ -40,7 +40,7 @@ export interface KPI {
 export interface DashboardMeta {
   lastUpdated: string;
   updateFrequency?: string;
-  version?: string;
+  version: string;
 }
 
 export interface DashboardRoot {

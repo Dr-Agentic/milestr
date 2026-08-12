@@ -1,7 +1,7 @@
 ---
 name: milestr-dashboard
 description: Use when operating a Milestr dashboard instance — a TypeScript CLI that tracks hierarchical tasks (goal → milestone → initiative → task) and KPIs for a single project. Triggers on requests like "create a milestone", "log KPI value", "update task status", "set progress", "export the dashboard", "publish to Cloudflare Pages", "check task list", "back up the data", or any work that writes to or reads from a `data.json` Milestr file. Load this skill before running `npm run dev` against a Milestr instance.
-version: 1.2.0
+version: 1.2.1
 author: Stewart (strategy agent for Morsy) and the Milestr maintainers
 license: MIT
 metadata:
@@ -55,18 +55,32 @@ Verify:
 ```bash
 which milestr              # must point to the binary
 milestr help               # prints the full action list
-npm list -g milestr        # → milestr@1.2.0 (confirms the installed version)
+npm list -g milestr        # → milestr@<latest> (confirms the installed version)
 ```
 
 ### 3. Create a dashboard directory
 
-Milestr reads and writes `data.json` in the **current working directory** by default. Create one:
+Milestr reads and writes `data.json` in the **current working directory** by default.
+Use `init` to bootstrap a fresh one:
 
 ```bash
 mkdir -p ~/milestr/my-project
 cd ~/milestr/my-project
-cp /path/to/sample-data.json data.json   # optional starter data
+milestr --agent operator init [--id ROOT] [--title "My Project"] [--icon 🚀]
+# Or from anywhere:
+milestr --data ~/milestr/my-project --agent operator init --title "My Project"
 ```
+
+Flags:
+- `--id`, `--title`, `--icon` — customize the root goal.
+- `--minimal` — create a bare root-only dashboard (no sample tasks/KPIs).
+- `--seed <path>` — bootstrap from an existing `data.json` (preserves tasks/kpis, stamps current version).
+- `--force` — overwrite an existing `data.json` without prompting.
+- `--data-file <path>` — write to an explicit file path instead of `./data.json`.
+- `--json` — emit the resulting `data.json` to stdout instead of logging paths.
+
+`init` auto-stamps `meta.version = CURRENT_DATA_VERSION` (matches `package.json`) and
+publishes the dashboard to Cloudflare Pages. It refuses to overwrite without `--force`.
 
 ### 4. Pin the data directory per command (recommended for multi-instance users)
 
@@ -109,6 +123,27 @@ npm test
 ```
 
 From the source repo, use `npm run dev -- <args>` instead of `milestr <args>`.
+
+### Engine contributor rule: data migrations are CI-enforced
+
+When changing the persisted `data.json` shape, add a pure migration module under
+`src/data/migrations/`, register its source → target version in `index.ts`, and
+add a regression fixture/test. Because the data version follows the executable
+version, every `package.json` version bump also needs a registry target—even a
+no-op migration for a code-only release.
+
+Run the guard before considering the change complete:
+
+```bash
+npm run build
+npm run check-migrations
+npm test
+```
+
+CI rejects a version bump without a target migration or a chain from the
+previous package version. This is the durable reminder for future contributors;
+don't rely on session memory. See `src/data/migrations/README.md` for the
+full authoring workflow.
 
 ### Troubleshooting
 

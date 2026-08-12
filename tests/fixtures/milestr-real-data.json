@@ -2,11 +2,11 @@
   "meta": {
     "lastUpdated": "2026-04-12T00:00:00.000Z",
     "updateFrequency": "hourly",
-    "version": "1.2.1"
+    "version": "0.5.0"
   },
   "root": {
     "id": "ROOT",
-    "title": "AI Agent Project",
+    "title": "Milestr Self-Dashboard",
     "type": "goal",
     "status": "ongoing",
     "dueDate": null,
