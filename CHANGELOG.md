@@ -17,6 +17,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deliberate signal and must be reset by the agent (`status ... ongoing`
   or `progress ... <100>`), not silently re-derived from children.
   Tracked for the v1.2 actions release.
+- **`milestr migrate <subcommand>` CLI surface (CR-0001 §4.4, deferred):**
+  The version registry, loader hardening, pre-migration backups, and
+  `npm run check-migrations` gate all shipped in v1.2.1. The explicit
+  `status | dry-run | run | rollback` CLI subcommands listed in
+  `docs/CR-0001-data-version-migrations.md` §4.4 did not. Tracked for
+  the v1.3 release.
+
+## [1.2.1] - 2026-08-12
+
+### Added
+- **Automatic `data.json` versioning and migration on load**
+  (`docs/CR-0001-data-version-migrations.md`). `meta.version` is now
+  required and tracks the executable's version (sources from
+  `src/version.ts`). Loading a `data.json` from an older version
+  automatically applies the migration chain, creates a timestamped
+  pre-migration backup under `backups/`, writes a `MIGRATION:` entry
+  to `dashboard.log`, and re-validates with Zod before returning.
+  Loading a `data.json` with a *newer* `meta.version` than the
+  executable fails fast with an actionable `MigrationError`.
+- **`milestr` init command enhancements** (`docs/CR-0002-init-command.md`).
+  Adds `--force` (overwrite existing `data.json`), `--minimal` (root-only
+  payload, skip `sample-data.json`), `--seed <path>` (bootstrap from a
+  JSON file, with Zod validation), `--data-file <path>` (explicit output
+  path), and `--json` (machine-readable emit). `meta.version` is always
+  stamped to the current executable version regardless of seed contents.
+- **Registry + CI gate for migrations** (`scripts/check-migrations.mjs`).
+  Fails the build if `CURRENT_DATA_VERSION` doesn't match
+  `package.json`, if the registry has no target, or if no chain exists
+  from the previous package version. Wired into `.github/workflows/ci.yml`.
+- **Contributor checklist** (`.github/pull_request_template.md`) requiring
+  every PR to declare whether the persisted data shape changed and whether
+  a migration step was added.
+- **Migration author guide** (`src/data/migrations/README.md`) covering
+  how to add a new step without breaking the registry contract.
+
+### Tests
+- Real-data fixture round-trip test using `tests/fixtures/milestr-real-data.json`
+  (snapshot of Milestr's own dashboard at the time of the CR-0002 work).
+- Migrated-data leaves `data.json` byte-identical on failure; future-version
+  rejection produces typed errors with executable version in the message.
+- 8 new `init` test cases (`--force`, `--minimal`, `--seed` good/bad,
+  `--data-file`, real-data fixture, conflict refusal, schema validity).
 
 ## [1.2.0] - 2026-06-28
 
@@ -138,7 +180,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Atomic writes with PID-based file locking and 10-deep backup ring.
 - 96.46% statement coverage across 41 tests.
 
-[Unreleased]: https://github.com/Dr-Agentic/milestr/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/Dr-Agentic/milestr/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/Dr-Agentic/milestr/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/Dr-Agentic/milestr/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/Dr-Agentic/milestr/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/Dr-Agentic/milestr/compare/v1.0.0...v1.1.0
