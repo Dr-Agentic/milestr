@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resolvePaths } from '../src/data/config';
+import { CURRENT_DATA_VERSION } from '../src/data/migrations';
 import { createSampleData } from './helpers';
 
 const publishDashboardMock = vi.fn();
@@ -265,7 +266,7 @@ describe('handlers', () => {
 
     const raw = await fs.readFile(paths.dataFile, 'utf8');
     const data = JSON.parse(raw);
-    expect(data.meta.version).toBe('1.2.1');
+    expect(data.meta.version).toBe(CURRENT_DATA_VERSION);
     expect(data.root.id).toBe('ROOT');
     expect(data.root.type).toBe('goal');
     expect(data.tasks.ROOT).toBeDefined();
@@ -352,12 +353,12 @@ describe('handlers', () => {
 
     // The hardcoded migration target must equal CURRENT_DATA_VERSION
     const latestMigration = MIGRATIONS[MIGRATIONS.length - 1];
-    expect(latestMigration.to).toBe('1.2.1');
-    expect(CURRENT_DATA_VERSION).toBe('1.2.1');
+    expect(latestMigration.to).toBe(CURRENT_DATA_VERSION);
+    expect(CURRENT_DATA_VERSION).toBe('1.2.2');
 
     // init stamps CURRENT_DATA_VERSION
     expect(data.meta.version).toBe(CURRENT_DATA_VERSION);
-    expect(data.meta.version).toBe('1.2.1');
+    expect(data.meta.version).toBe(CURRENT_DATA_VERSION);
   });
 
   it('init produces a dashboard.html in the site directory', async () => {
@@ -469,7 +470,7 @@ describe('handlers', () => {
     const raw = await fs.readFile(paths.dataFile, 'utf8');
     const data = JSON.parse(raw);
     // meta stamped to current version
-    expect(data.meta.version).toBe('1.2.1');
+    expect(data.meta.version).toBe(CURRENT_DATA_VERSION);
     expect(data.meta.lastUpdated).not.toBe('2020-01-01T00:00:00Z');
     // task and kpi content preserved
     expect(data.tasks.ROOT.title).toBe('Seed Title');
@@ -503,7 +504,7 @@ describe('handlers', () => {
     const calls = logSpy.mock.calls.flat();
     const output = calls.join('');
     const parsed = JSON.parse(output);
-    expect(parsed.meta.version).toBe('1.2.1');
+    expect(parsed.meta.version).toBe(CURRENT_DATA_VERSION);
     expect(parsed.root.type).toBe('goal');
     expect(parsed.tasks.ROOT).toBeDefined();
   });
@@ -531,7 +532,7 @@ describe('handlers', () => {
     expect(data.kpis['kpi-users']).toBeDefined();
     expect(data.kpis['kpi-mrr']).toBeDefined();
     // fixture was v0.5.0, now stamped to 1.2.1
-    expect(data.meta.version).toBe('1.2.1');
+    expect(data.meta.version).toBe(CURRENT_DATA_VERSION);
   });
 
   it('init publishes and logs the dashboard URL', async () => {
@@ -546,5 +547,121 @@ describe('handlers', () => {
 
     expect(publishDashboardMock).toHaveBeenCalledTimes(1);
     expect(logSpy.mock.calls.flat().join(' ')).toContain('https://agent-dashboard.pages.dev');
+  });
+});
+
+describe('update (generic field setter)', () => {
+  let logSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    publishDashboardMock.mockResolvedValue('https://example.pages.dev');
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('sets an allowlisted task field with --value', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths, data } = await createWorkspace();
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const ctx = { agent: 'agent', paths };
+
+    await ACTIONS.update(ctx, { _: ['M1'], field: 'subtitle', value: 'A new subtitle' });
+
+    const updated = JSON.parse(await fs.readFile(paths.dataFile, 'utf8'));
+    expect(updated.tasks.M1.subtitle).toBe('A new subtitle');
+    // audit entry was appended
+    expect(updated.tasks.M1.activityLog[0].note).toContain('subtitle');
+    // root.children untouched
+    expect(updated.root.children).toEqual(data.root.children);
+  });
+
+  it('reports current value when --value is omitted (no mutation)', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const ctx = { agent: 'agent', paths };
+
+    // capture before-state mtime to confirm file unchanged on disk.
+    // mtime has ms precision; subtract 5ms tolerance to avoid sub-ms drift races.
+    const beforeMtime = (await fs.stat(paths.dataFile)).mtimeMs;
+
+    await ACTIONS.update(ctx, { _: ['M1'], field: 'subtitle' });
+
+    const afterMtime = (await fs.stat(paths.dataFile)).mtimeMs;
+    // mtime must NOT have been rewritten: either equal or earlier than before (modulo sub-ms drift).
+    // The file should not have been rewritten by saveData, so mtime should be unchanged.
+    expect(Math.abs(afterMtime - beforeMtime)).toBeLessThan(5);
+    expect(logSpy.mock.calls.flat().join(' ')).toContain('M1.subtitle');
+    // publishDashboard NOT called when no mutation
+    expect(publishDashboardMock).toHaveBeenCalledTimes(0);
+  });
+
+  it('rejects fields not in the task allowlist', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const ctx = { agent: 'agent', paths };
+
+    await expect(
+      ACTIONS.update(ctx, { _: ['M1'], field: 'progress', value: '50' })
+    ).rejects.toThrow(/not in allowlist/);
+
+    await expect(
+      ACTIONS.update(ctx, { _: ['M1'], field: 'bogusField', value: 'x' })
+    ).rejects.toThrow(/not in allowlist/);
+  });
+
+  it('rejects fields not in the KPI allowlist', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const ctx = { agent: 'agent', paths };
+
+    // create a KPI so we have one to target
+    await ACTIONS['create-kpi'](ctx, { _: [], id: 'kpi-test', title: 'Test KPI', value: '0', unit: 'users' });
+
+    // KPI allowlist: title, unit, source, icon — value is NOT in it
+    await expect(
+      ACTIONS.update(ctx, { _: ['kpi-test'], field: 'value', value: '50' })
+    ).rejects.toThrow(/not in allowlist/);
+  });
+
+  it('updates a KPI field that IS in the KPI allowlist', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const ctx = { agent: 'agent', paths };
+
+    await ACTIONS['create-kpi'](ctx, { _: [], id: 'kpi-test', title: 'Test KPI', value: '0', unit: 'users' });
+    await ACTIONS.update(ctx, { _: ['kpi-test'], field: 'unit', value: 'signups' });
+
+    const updated = JSON.parse(await fs.readFile(paths.dataFile, 'utf8'));
+    expect(updated.kpis['kpi-test'].unit).toBe('signups');
+  });
+
+  it('throws when the id does not exist in tasks or kpis', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const ctx = { agent: 'agent', paths };
+
+    await expect(
+      ACTIONS.update(ctx, { _: ['NOPE'], field: 'subtitle', value: 'x' })
+    ).rejects.toThrow(/not found in tasks or kpis/);
+  });
+
+  it('coerces empty string to null for dueDate', async () => {
+    const { ACTIONS } = await import('../src/actions/handlers');
+    const { paths } = await createWorkspace();
+    logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const ctx = { agent: 'agent', paths };
+
+    await ACTIONS.update(ctx, { _: ['M1'], field: 'dueDate', value: '' });
+
+    const updated = JSON.parse(await fs.readFile(paths.dataFile, 'utf8'));
+    expect(updated.tasks.M1.dueDate).toBeNull();
   });
 });
