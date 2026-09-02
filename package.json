@@ -1,6 +1,6 @@
 {
   "name": "milestr",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Hierarchical goal, milestone, and KPI tracking CLI with auto-generated dashboard and Cloudflare Pages publishing",
   "type": "commonjs",
   "main": "dist/index.js",
