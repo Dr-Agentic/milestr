@@ -1,7 +1,7 @@
 ---
 name: milestr-dashboard
 description: Use when operating a Milestr dashboard instance — a TypeScript CLI that tracks hierarchical tasks (goal → milestone → initiative → task) and KPIs for a single project. Triggers on requests like "create a milestone", "log KPI value", "update task status", "set progress", "export the dashboard", "publish to Cloudflare Pages", "check task list", "back up the data", or any work that writes to or reads from a `data.json` Milestr file. Load this skill before running `npm run dev` against a Milestr instance.
-version: 1.2.1
+version: 1.2.2
 author: Stewart (strategy agent for Morsy) and the Milestr maintainers
 license: MIT
 metadata:
