@@ -21,8 +21,11 @@ describe('store', () => {
 
   it('loads valid data and rejects invalid json payloads', async () => {
     const { loadData } = await import('../src/data/store');
+    const { CURRENT_DATA_VERSION } = await import('../src/data/migrations');
     const paths = await createTempPaths();
-    const data = await writeData(paths);
+    // Stamp the fixture to CURRENT_DATA_VERSION so loadData is a no-op read.
+    // (Migration tests deliberately use older versions and override per-test.)
+    const data = await writeData(paths, { ...createSampleData(), meta: { ...createSampleData().meta, version: CURRENT_DATA_VERSION } });
 
     await expect(loadData(paths)).resolves.toEqual(data);
 

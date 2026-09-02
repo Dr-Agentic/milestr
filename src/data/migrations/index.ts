@@ -1,6 +1,7 @@
 import { MigrationError } from '../../errors';
 import { MILESTR_VERSION } from '../../version';
 import { migrateLegacyDashboard } from './v1.1.0-to-current';
+import { migrateOneTwoTwo } from './v1.2.1-to-v1.2.2';
 
 export const CURRENT_DATA_VERSION = MILESTR_VERSION;
 
@@ -31,6 +32,13 @@ export const MIGRATIONS: VersionMigration[] = [
     // accompanied by a deliberate registry entry for that exact version.
     to: '1.2.1',
     migrate: migrateLegacyDashboard
+  },
+  {
+    from: ['1.2.0', '1.2.1'],
+    // No-op schema release for the `update <id> --field <name> --value <v>`
+    // action. Explicit registry entry keeps check-migrations green.
+    to: '1.2.2',
+    migrate: migrateOneTwoTwo
   }
 ];
 
