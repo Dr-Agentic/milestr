@@ -180,6 +180,73 @@ export const actionTitle: ActionHandler = async (ctx, args) => {
   logPublishedUrl(result.publishedUrl);
 };
 
+/**
+ * Allowed fields for `update --field <name> --value <v>`.
+ * Keeps the schema-strip invariant intact: unknown fields are still rejected.
+ * Add a field here only if it appears in taskSchema / kpiSchema in src/data/schema.ts.
+ */
+const ALLOWED_TASK_FIELDS = new Set([
+  'title', 'subtitle', 'icon', 'dueDate'
+]);
+
+const ALLOWED_KPI_FIELDS = new Set([
+  'title', 'unit', 'source', 'icon'
+]);
+
+export const actionUpdate: ActionHandler = async (ctx, args) => {
+  const data = await loadData(ctx.paths);
+  const [id] = args._;
+  const field = typeof args.field === 'string' ? args.field : undefined;
+  const value = typeof args.value === 'string' ? args.value : undefined;
+
+  if (!id || !field) {
+    throw new CliError('update requires <id> --field <name> [--value <v>]');
+  }
+
+  // Determine whether the id resolves to a task or a KPI. Tasks and KPIs share
+  // the id namespace, but only one of them will be present at a time.
+  const isTask = !!data.tasks[id];
+  const isKpi = !isTask && !!data.kpis && !!data.kpis[id];
+
+  if (!isTask && !isKpi) {
+    throw new CliError('update: ' + id + ' not found in tasks or kpis');
+  }
+
+  const allowlist = isTask ? ALLOWED_TASK_FIELDS : ALLOWED_KPI_FIELDS;
+  if (!allowlist.has(field)) {
+    const allowed = Array.from(allowlist).join(', ');
+    throw new CliError(
+      'update: field "' + field + '" not in allowlist for ' +
+      (isTask ? 'tasks' : 'kpis') + '. Allowed: ' + allowed +
+      '. For status / progress / title use the dedicated actions; this command is for optional fields only.'
+    );
+  }
+
+  const target: Record<string, unknown> = isTask ? data.tasks[id] as unknown as Record<string, unknown> : data.kpis![id] as unknown as Record<string, unknown>;
+  const oldValue = target[field];
+
+  if (value === undefined) {
+    // No --value: report current value, do not mutate.
+    log(id + '.' + field + ' = ' + JSON.stringify(oldValue));
+    return;
+  }
+
+  // Coerce empty string to null for date fields (mirrors how dueDate is nullable in schema).
+  const newValue: unknown = (field === 'dueDate' && value === '') ? null : value;
+  target[field] = newValue;
+
+  if (isTask) {
+    addActivityLog(data, id, 'Field "' + field + '" updated: ' + JSON.stringify(oldValue) + ' → ' + JSON.stringify(newValue), ctx.agent);
+  }
+
+  const result = await saveData(
+    ctx.paths, data, ctx.agent,
+    'update ' + id + '.' + field + ': ' + JSON.stringify(oldValue) + ' → ' + JSON.stringify(newValue)
+  );
+  log('Updated ' + id + '.' + field);
+  logPublishedUrl(result.publishedUrl);
+};
+
 export const actionDue: ActionHandler = async (ctx, args) => {
   const data = await loadData(ctx.paths);
   const [id, due] = args._;
@@ -611,6 +678,7 @@ export const ACTIONS: Record<string, ActionHandler> = {
   recalculate: actionRecalc,
   view: actionView,
   list: actionList,
+  update: actionUpdate,
   backup: actionBackup,
   restore: actionRestore,
   backups: actionListBackups,
