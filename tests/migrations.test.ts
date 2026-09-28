@@ -9,7 +9,7 @@ describe('migration registry', () => {
   });
 
   it('includes a path from the previous executable version to the current version', () => {
-    const previousVersion = '1.2.0';
+    const previousVersion = '1.2.2';
     const currentMigration = MIGRATIONS.find((migration) => migration.to === CURRENT_DATA_VERSION);
 
     expect(currentMigration?.from).toContain(previousVersion);
@@ -17,12 +17,12 @@ describe('migration registry', () => {
 
   it('migrates through the registered path to the current version', () => {
     const data = createSampleData();
-    data.meta.version = '1.2.0';
+    data.meta.version = '1.2.2';
 
     const result = migrateData(data);
 
     expect(result.migrated).toBe(true);
-    expect(result.fromVersion).toBe('1.2.0');
+    expect(result.fromVersion).toBe('1.2.2');
     expect((result.data as typeof data).meta.version).toBe(CURRENT_DATA_VERSION);
   });
 });

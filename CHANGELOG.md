@@ -5,6 +5,27 @@ All notable changes to Milestr are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-09-13
+
+### Added
+- **Light theme (default) + theme toggle.** CSS palette now lives in `:root` custom properties; light is the default and dark is opt-in via the 🌙/☀️ button in the header. Preference persists in `localStorage` under `milestr-theme`.
+- **Detail drawer (Tree + Kanban + List).** Click any task card to open a side drawer with the full status, type, parent, due date, progress, subtitle, and **complete** activity log (not truncated). Press <kbd>Esc</kbd> or click the backdrop to close.
+- **Tree view: LTR rendering.** Reverts the v1.2.1 RTL direction. Root sits on the left, children branch to the right, dashed connectors point into the page.
+- **Tree view: click-to-expand card body.** Title click → zoom (existing behavior preserved). Card body click → expand/collapse children. New "Details" button on each card opens the drawer.
+- **List view: full hierarchical depth.** Every task in the data renders as a row with `data-depth` and inline padding proportional to depth. With 200+ rows, a scroll-based virtualization pass hides off-screen rows.
+- **Kanban: depth indicator.** Cards now carry a `data-depth` attribute, a logarithmic dot-badge (`● ● ○ ○ ○` for depth 2 of 5), and a left-border thickness that scales 2px → 6px from depth 0 → 4. Sort within each column by depth ascending so parents always sit above their children.
+- **Timeline v2: achieved vs upcoming swimlanes.** New timeline renderer splits tasks into two lanes. "Achieved" = status `done` OR all-descendants-`done`. "Upcoming" = everything else, sorted by status priority (blocked > ongoing > analyzing > not_started) then by axis value. Axis is `dueDate` if any task has one; otherwise falls back to a sequence axis (`T1 → T2 → T3`). Bars are absolutely positioned with width proportional to subtree size.
+- **`depthOf(taskId, data)`** — exported helper from `src/ui/dashboardHtml.ts`. Walks parent chain with cycle protection (cap 64) so badges and borders always have a bounded depth.
+
+### Changed
+- `src/ui/dashboardHtml.ts` rewritten as a single template-generator module with CSS custom properties, embedded JSON for client-side drawer hydration, and inline `<script>` blocks that wire up theme, tree, drawer, and list virtualization. No new runtime dependencies.
+- `tests/dashboardHtml.test.ts` updated to assert LTR direction, light-theme defaults, drawer presence, kanban depth badge, list depth attribute, timeline swimlanes, sequence fallback, and 1000-node stress.
+
+### Fixed
+- Tree view no longer flips the reading direction (was RTL since v1.2.1).
+- Detail activity log was capped at 5 entries in the tree card; now the full log is available via the drawer.
+- Pre-existing test flake in `tests/handlers.test.ts > "reports current value when --value is omitted"` asserted `mtime < 5ms` to detect "no rewrite." APFS mtime resolution is coarser than that threshold on most macOS configurations. Replaced with a byte-content comparison (`Buffer.compare`) and pre-loadData baseline so the test now reliably detects a no-mutation call regardless of filesystem timing.
+
 ## [Unreleased]
 
 ### Notes
