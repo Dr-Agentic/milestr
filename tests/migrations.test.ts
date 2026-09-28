@@ -9,7 +9,7 @@ describe('migration registry', () => {
   });
 
   it('includes a path from the previous executable version to the current version', () => {
-    const previousVersion = '1.2.2';
+    const previousVersion = '1.3.0';
     const currentMigration = MIGRATIONS.find((migration) => migration.to === CURRENT_DATA_VERSION);
 
     expect(currentMigration?.from).toContain(previousVersion);

@@ -3,6 +3,7 @@ import { MILESTR_VERSION } from '../../version';
 import { migrateLegacyDashboard } from './v1.1.0-to-current';
 import { migrateOneTwoTwo } from './v1.2.1-to-v1.2.2';
 import { migrateOneTwoThree } from './v1.2.2-to-v1.3.0';
+import { migrateOneThreeOne } from './v1.3.0-to-v1.3.1';
 
 export const CURRENT_DATA_VERSION = MILESTR_VERSION;
 
@@ -47,6 +48,13 @@ export const MIGRATIONS: VersionMigration[] = [
     // changes are in `src/ui/dashboardHtml.ts`; the data shape is unchanged.
     to: '1.3.0',
     migrate: migrateOneTwoThree
+  },
+  {
+    from: ['1.3.0'],
+    // No-op schema release for v1.3.1 (first Trusted Publishing cut). The
+    // on-disk schema is unchanged; this entry keeps `check-migrations` green.
+    to: '1.3.1',
+    migrate: migrateOneThreeOne
   }
 ];
 

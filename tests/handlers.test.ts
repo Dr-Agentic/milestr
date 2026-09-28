@@ -5,6 +5,12 @@ import { resolvePaths } from '../src/data/config';
 import { CURRENT_DATA_VERSION } from '../src/data/migrations';
 import { createSampleData } from './helpers';
 
+function packageVersion(): string {
+  const pkgPath = path.resolve(__dirname, '..', 'package.json');
+  const pkg = JSON.parse(require('node:fs').readFileSync(pkgPath, 'utf8')) as { version: string };
+  return pkg.version;
+}
+
 const publishDashboardMock = vi.fn();
 
 vi.mock('../src/data/publish', () => ({
@@ -354,7 +360,7 @@ describe('handlers', () => {
     // The hardcoded migration target must equal CURRENT_DATA_VERSION
     const latestMigration = MIGRATIONS[MIGRATIONS.length - 1];
     expect(latestMigration.to).toBe(CURRENT_DATA_VERSION);
-    expect(CURRENT_DATA_VERSION).toBe('1.3.0');
+    expect(CURRENT_DATA_VERSION).toBe(packageVersion());
 
     // init stamps CURRENT_DATA_VERSION
     expect(data.meta.version).toBe(CURRENT_DATA_VERSION);
