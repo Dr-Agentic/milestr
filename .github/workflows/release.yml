@@ -69,21 +69,4 @@ jobs:
         # NODE_AUTH_TOKEN intentionally not set — setup-node@v4 mints an OIDC
         # token and exports it as NODE_AUTH_TOKEN for this step. Setting it to
         # anything (including '') disables the OIDC helper.
-        run: |
-          set +e
-          echo "=== TOKEN CLAIMS ==="
-          TOKEN_LEN=${#NODE_AUTH_TOKEN}
-          echo "Token length: $TOKEN_LEN"
-          if [ "$TOKEN_LEN" -gt 0 ]; then
-            node -e "
-              const t = process.env.NODE_AUTH_TOKEN;
-              const parts = t.split('.');
-              const claims = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
-              console.log(JSON.stringify(claims, null, 2));
-            "
-          else
-            echo "NO TOKEN"
-          fi
-          echo "=== END ==="
-          set -e
-          npm publish --provenance --access public
+        run: npm publish --access public
