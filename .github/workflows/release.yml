@@ -44,6 +44,9 @@ jobs:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Upgrade npm to latest (>=11.5.1 required for OIDC Trusted Publishing)
+        run: npm install -g npm@latest
+
       - name: Strip _authToken from npmrc (let OIDC kick in)
         # setup-node@v4 with registry-url writes a //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
         # line. With no NPM_TOKEN secret (Trusted Publishing), that placeholder expands to empty,
