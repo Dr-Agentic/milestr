@@ -30,11 +30,13 @@ jobs:
         run: |
           if [ -n "${{ inputs.version }}" ]; then
             VERSION="${{ inputs.version }}"
-          else
+          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION=$(node -p "require('./package.json').version")
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Publishing milestr@${VERSION}"
+          echo "Publishing milestr@${VERSION} (trigger: ${{ github.event_name }})"
 
       - name: Setup Node
         uses: actions/setup-node@v4
