@@ -44,6 +44,18 @@ jobs:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Strip _authToken from npmrc (let OIDC kick in)
+        # setup-node@v4 with registry-url writes a //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
+        # line. With no NPM_TOKEN secret (Trusted Publishing), that placeholder expands to empty,
+        # npm sees "auth configured" and skips the OIDC flow -> 404. Remove the line so npm
+        # initiates the OIDC exchange via ACTIONS_ID_TOKEN_REQUEST_*. See
+        # https://github.com/npm/documentation/issues/1960
+        run: |
+          npmrc="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          sed -i '/_authToken/d' "$npmrc"
+          echo "--- npmrc after edit ---"
+          cat "$npmrc"
+
       - name: Install dependencies
         run: npm ci
 
