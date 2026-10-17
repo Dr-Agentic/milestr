@@ -1,7 +1,7 @@
 ---
 name: milestr-dashboard
 description: Use when operating a Milestr dashboard instance — a TypeScript CLI that tracks hierarchical tasks (goal → milestone → initiative → task) and KPIs for a single project. Triggers on requests like "create a milestone", "log KPI value", "update task status", "set progress", "export the dashboard", "publish to Cloudflare Pages", "check task list", "back up the data", or any work that writes to or reads from a `data.json` Milestr file. Load this skill before running `npm run dev` against a Milestr instance.
-version: 1.3.1
+version: 1.3.2
 author: Stewart (strategy agent for Morsy) and the Milestr maintainers
 license: MIT
 metadata:
@@ -200,6 +200,18 @@ interface KPI {
 
 **Cascade rule:** setting a task `status=done` forces `progress=100`. Setting `progress=100` forces `status=done`. The engine recomputes parent progress as the unweighted mean of children whenever you `create`/`status`/`progress` a child. The parent's status only flips to `done` if **every** child is `done`.
 
+**Self-heal on load:** every `loadData()` call re-derives parent progress and status from the current state of the children. If a parent is out of sync with its children (e.g. a milestone where all 29 children are `done` but `progress` still reads 75), the engine silently fixes it before returning. The fix is logged in `dashboard.log` as a `HEAL:` line. This is idempotent — a consistent file produces no log line and no rewrite.
+
+**Out-of-band edit detector:** every `loadData()` call also checks `data.json`'s file mtime against `meta.lastUpdated`. If the file was modified more than 2 seconds after the last CLI write, the engine logs a `MANUAL_EDIT:` warning to `dashboard.log` (not blocking — loading still succeeds). This is the trip wire that tells you an earlier agent or a human edited the file directly. The 2-second margin absorbs filesystem timestamp slop on hosts with 1-second mtime resolution (macOS HFS+, some FUSE mounts).
+
+## ⚠️ NEVER edit `data.json` by hand
+
+Use the CLI for every mutation. The CLI has guards the file does not:
+
+- `create` / `status` / `progress` / `delete` all call `cascadeUpdate`, which keeps parent rollups in sync with children.
+- The self-heal pass on `loadData()` only runs in memory — it does **not** rewrite `data.json` on its own. If you write the file directly, your edit is what gets re-loaded next time, and the heal will quietly fix the rollups but your title/subtitle/dueDate/etc. changes will be silently kept as-is. The CLI is the only way to get publish, backup, and activity-log entries for free.
+- If you ever feel the need to edit `data.json` by hand, stop and use the CLI instead: `milestr <action>`. The full action list is under "CLI quick reference" below.
+
 ## CLI quick reference
 
 All commands follow the form:
@@ -338,7 +350,8 @@ npm run dev -- list --json | jq -r '.[] | select(.status == "blocked") | .id'
 7. **Calling `restore` with a wrong timestamp.** `backups` prints the exact ISO timestamp to use. The `restore` command also writes a `data-pre-restore-<ts>.json` emergency backup before overwriting, so a wrong restore is recoverable.
 8. **Concurrent writes.** Two processes writing at the same time: the second one fails with `LockError`. Check `.dashboard.lock` if this happens — the file holds the PID of the holder. The lock auto-clears on process exit.
 9. **Trying to read `data.json` while a write is in progress.** The lock is only enforced by the CLI; external readers can see partial writes. The CLI's read-modify-write cycle is atomic, so use the CLI for any mutation.
-10. **Stale `data.json` after a long-running session.** The CLI re-reads `data.json` on every command, so there's no in-process staleness. Across processes, the latest write wins — if two agents are editing concurrently, last write wins.
+10. **Editing `data.json` by hand to "fix" a wrong number.** Don't. The CLI is the only path that triggers `cascadeUpdate` and the activity log. If you must reconcile after a manual edit, run `recalc <parent-id>` immediately after to put the rollups right.
+11. **Stale `data.json` after a long-running session.** The CLI re-reads `data.json` on every command, so there's no in-process staleness. Across processes, the latest write wins — if two agents are editing concurrently, last write wins. The `loadData()` self-heal pass catches drift from older Milestr releases or out-of-band edits.
 
 ## Verification checklist before any mutating command
 

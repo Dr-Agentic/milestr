@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { NotFoundError } from '../src/errors';
-import { addActivityLog, cascadeUpdate, getTaskOrThrow, recalculateProgress, updateParentStatus } from '../src/actions/utils';
+import { addActivityLog, cascadeUpdate, getTaskOrThrow, healParentRollups, recalculateProgress, updateParentStatus } from '../src/actions/utils';
 import { createSampleData } from './helpers';
 
 describe('action utils', () => {
@@ -63,5 +63,83 @@ describe('action utils', () => {
     expect(() => updateParentStatus(data, 'M1')).not.toThrow();
     expect(() => cascadeUpdate(data, 'ROOT')).not.toThrow();
     expect(() => recalculateProgress(data, 'ROOT')).not.toThrow();
+  });
+
+  describe('healParentRollups', () => {
+    it('recomputes parent progress when all children are done but parent is stale', () => {
+      const data = createSampleData();
+      // I1 is done and 100% — M1 should be 100 / status=done, but is stale (50 / ongoing).
+      data.tasks.I1.status = 'done';
+      data.tasks.I1.progress = 100;
+      data.tasks.M1.status = 'ongoing';
+      data.tasks.M1.progress = 50;
+      // ROOT is also stale (50 / ongoing) but has only 2 children: M1 (now 100) + I1 (100) → 100.
+      data.tasks.ROOT.status = 'ongoing';
+      data.tasks.ROOT.progress = 50;
+
+      const report = healParentRollups(data);
+
+      expect(data.tasks.M1.progress).toBe(100);
+      expect(data.tasks.M1.status).toBe('done');
+      expect(data.tasks.ROOT.progress).toBe(100);
+      expect(data.tasks.ROOT.status).toBe('done');
+      expect(report.fixed).toEqual(expect.arrayContaining(['M1', 'ROOT']));
+    });
+
+    it('forces progress=100 when status=done but progress is wrong', () => {
+      const data = createSampleData();
+      data.tasks.M1.status = 'done';
+      data.tasks.M1.progress = 75; // stale: done but not 100
+      data.tasks.I1.status = 'done';
+      data.tasks.I1.progress = 100;
+      // No M1 children progress mismatch to flag; but the status/progress inconsistency is.
+
+      const report = healParentRollups(data);
+
+      expect(data.tasks.M1.progress).toBe(100);
+      expect(report.fixed).toContain('M1');
+    });
+
+    it('recomputes unweighted mean of children regardless of old parent value', () => {
+      const data = createSampleData();
+      data.tasks.I1.status = 'ongoing';
+      data.tasks.I1.progress = 80;
+      data.tasks.M1.status = 'ongoing';
+      data.tasks.M1.progress = 0; // stale — should become 80
+
+      healParentRollups(data);
+
+      expect(data.tasks.M1.progress).toBe(80);
+    });
+
+    it('no-ops on already-correct data and reports nothing fixed', () => {
+      const data = createSampleData();
+      // sample data is already internally consistent (M1=50, I1=50, ROOT=50).
+      const report = healParentRollups(data);
+
+      expect(report.fixed).toEqual([]);
+    });
+
+    it('skips nodes with no children and does not modify them', () => {
+      const data = createSampleData();
+      const before = JSON.stringify(data.tasks.I1);
+
+      healParentRollups(data);
+
+      expect(JSON.stringify(data.tasks.I1)).toBe(before);
+    });
+
+    it('flips not_started parent to ongoing when any child is ongoing', () => {
+      const data = createSampleData();
+      data.tasks.I1.status = 'ongoing';
+      data.tasks.I1.progress = 50;
+      data.tasks.M1.status = 'not_started';
+      data.tasks.M1.progress = 0;
+
+      healParentRollups(data);
+
+      expect(data.tasks.M1.status).toBe('ongoing');
+      expect(data.tasks.M1.progress).toBe(50);
+    });
   });
 });

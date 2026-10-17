@@ -2,6 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { CURRENT_DATA_VERSION, MIGRATIONS, migrateData } from '../src/data/migrations';
 import { createSampleData } from './helpers';
 
+function previousExecutableVersion(current: string): string {
+  const [major, minor, patch] = current.split('.').map((n) => Number(n));
+  if (patch > 0) return `${major}.${minor}.${patch - 1}`;
+  if (minor > 0) return `${major}.${minor - 1}.0`;
+  if (major > 0) return `${major - 1}.0.0`;
+  throw new Error(`cannot decrement ${current}`);
+}
+
 describe('migration registry', () => {
   it('declares a target version for every migration step', () => {
     expect(MIGRATIONS.length).toBeGreaterThan(0);
@@ -9,7 +17,7 @@ describe('migration registry', () => {
   });
 
   it('includes a path from the previous executable version to the current version', () => {
-    const previousVersion = '1.3.0';
+    const previousVersion = previousExecutableVersion(CURRENT_DATA_VERSION);
     const currentMigration = MIGRATIONS.find((migration) => migration.to === CURRENT_DATA_VERSION);
 
     expect(currentMigration?.from).toContain(previousVersion);

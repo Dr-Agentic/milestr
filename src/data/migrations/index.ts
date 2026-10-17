@@ -4,6 +4,7 @@ import { migrateLegacyDashboard } from './v1.1.0-to-current';
 import { migrateOneTwoTwo } from './v1.2.1-to-v1.2.2';
 import { migrateOneTwoThree } from './v1.2.2-to-v1.3.0';
 import { migrateOneThreeOne } from './v1.3.0-to-v1.3.1';
+import { migrateOneThreeTwo } from './v1.3.1-to-v1.3.2';
 
 export const CURRENT_DATA_VERSION = MILESTR_VERSION;
 
@@ -55,6 +56,14 @@ export const MIGRATIONS: VersionMigration[] = [
     // on-disk schema is unchanged; this entry keeps `check-migrations` green.
     to: '1.3.1',
     migrate: migrateOneThreeOne
+  },
+  {
+    from: ['1.3.1'],
+    // No-op schema release for v1.3.2 (loadData() self-heal pass). The
+    // on-disk schema is unchanged — healParentRollups operates in memory only.
+    // This entry keeps `check-migrations` green. See CR-SelfHeal (issue #23).
+    to: '1.3.2',
+    migrate: migrateOneThreeTwo
   }
 ];
 
