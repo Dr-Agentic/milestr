@@ -30,7 +30,7 @@ export interface MigrationResult {
 
 export const MIGRATIONS: VersionMigration[] = [
   {
-    from: ['0.0.0', '1.0.0', '1.1.0', '1.2.0'],
+    from: ['0.0.0', '1.0.0', '1.1.0', '1.1.1', '1.2.0'],
     // Keep migration targets explicit. CI must fail when a package bump is not
     // accompanied by a deliberate registry entry for that exact version.
     to: '1.2.1',

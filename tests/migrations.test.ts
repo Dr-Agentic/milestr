@@ -33,4 +33,33 @@ describe('migration registry', () => {
     expect(result.fromVersion).toBe('1.2.2');
     expect((result.data as typeof data).meta.version).toBe(CURRENT_DATA_VERSION);
   });
+
+  // Regression: v1.1.1 was omitted from the first migration step's `from`
+  // list, so any dashboard still stamped 1.1.1 failed to load with
+  // "No migration path from data version 1.1.1". Every released version
+  // must be reachable from the registry.
+  it('migrates a 1.1.1 dashboard to the current version', () => {
+    const data = createSampleData();
+    data.meta.version = '1.1.1';
+
+    const result = migrateData(data);
+
+    expect(result.migrated).toBe(true);
+    expect(result.fromVersion).toBe('1.1.1');
+    expect((result.data as typeof data).meta.version).toBe(CURRENT_DATA_VERSION);
+  });
+
+  it('reaches the current version from every released data version', () => {
+    // Explicit list of every data version ever written to disk. This must not
+    // be derived from the registry — deriving it would make the assertion
+    // vacuous (the registry only lists the versions it knows about, so an
+    // omitted version would never be checked).
+    const releasedVersions = ['0.0.0', '1.0.0', '1.1.0', '1.1.1', '1.2.0', '1.2.1', '1.2.2', '1.3.0', '1.3.1'];
+
+    for (const version of releasedVersions) {
+      const data = createSampleData();
+      data.meta.version = version;
+      expect(() => migrateData(data), `no migration path from ${version}`).not.toThrow();
+    }
+  });
 });
