@@ -69,6 +69,23 @@ describe('store', () => {
     await expect(loadData(paths)).rejects.toThrow('Data version 999.0.0 is newer than this Milestr executable');
   });
 
+  it('does not warn MANUAL_EDIT on the load that performs a migration', async () => {
+    // The migration branch rewrites data.json itself. If it does not stamp
+    // meta.lastUpdated, the drift detector below flags our own write as an
+    // out-of-band edit and logs a false MANUAL_EDIT alarm on every load.
+    const { loadData } = await import('../src/data/store');
+    const paths = await createTempPaths();
+    const olderData = createSampleData();
+    olderData.meta.version = '1.1.1';
+    await writeData(paths, olderData);
+
+    await loadData(paths);
+
+    const log = await fs.readFile(paths.logFile, 'utf8');
+    expect(log).toContain('MIGRATION: 1.1.1 →');
+    expect(log).not.toMatch(/MANUAL_EDIT:/);
+  });
+
   it('writes static html output to both local files', async () => {
     const { saveStaticSite } = await import('../src/data/store');
     const paths = await createTempPaths();

@@ -18,6 +18,11 @@ export async function loadData(paths: DataPaths): Promise<DashboardData> {
 
     if (migration.migrated) {
       const backupName = await createBackup(paths);
+      // Stamp lastUpdated when we rewrite the file ourselves. Without this the
+      // mtime-vs-lastUpdated drift check below immediately flags our own
+      // migration write as a MANUAL_EDIT and logs a false alarm on every
+      // subsequent load.
+      data.meta.lastUpdated = new Date().toISOString();
       await fs.writeFile(paths.dataFile, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
       await logToFile(paths, `MIGRATION: ${migration.fromVersion ?? 'unversioned'} → ${CURRENT_DATA_VERSION} (backup ${backupName})`);
     }
