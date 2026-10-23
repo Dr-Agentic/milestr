@@ -51,9 +51,9 @@ describe('exportDashboardHtml', () => {
     expect(html).toContain('data-detail-open=');
 
     // Keyboard: Esc / + / -
-    expect(html).toContain('"Escape"');
-    expect(html).toContain('"+"');
-    expect(html).toContain('"-"');
+    expect(html).toMatch(/['"]Escape['"]/);
+    expect(html).toMatch(/['"]\+['"]/);
+    expect(html).toMatch(/['"]-['"]/);
   });
 
   it('renders the tree node summary (icon, title, progress, status) collapsed by default', () => {
@@ -96,7 +96,7 @@ describe('exportDashboardHtml', () => {
     // Theme toggle button is present
     expect(html).toContain('id="theme-toggle"');
     // Persistence key matches spec
-    expect(html).toContain('"milestr-theme"');
+    expect(html).toMatch(/['"]milestr-theme['"]/);
   });
 
   it('detail drawer is rendered with embedded task data (v1.3.0)', () => {
@@ -169,7 +169,7 @@ describe('exportDashboardHtml', () => {
     const data = createSampleData();
     const html = exportDashboardHtml(data);
     expect(html).toContain('rows.length < 200');
-    expect(html).toContain('addEventListener("scroll"');
+    expect(html).toMatch(/addEventListener\(['"]scroll['"]/);
   });
 
   it('handles 1000-node data without crashing', () => {
