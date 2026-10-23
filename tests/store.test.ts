@@ -69,6 +69,23 @@ describe('store', () => {
     await expect(loadData(paths)).rejects.toThrow('Data version 999.0.0 is newer than this Milestr executable');
   });
 
+  it('does not warn MANUAL_EDIT on the load that performs a migration', async () => {
+    // The migration branch rewrites data.json itself. If it does not stamp
+    // meta.lastUpdated, the drift detector below flags our own write as an
+    // out-of-band edit and logs a false MANUAL_EDIT alarm on every load.
+    const { loadData } = await import('../src/data/store');
+    const paths = await createTempPaths();
+    const olderData = createSampleData();
+    olderData.meta.version = '1.1.1';
+    await writeData(paths, olderData);
+
+    await loadData(paths);
+
+    const log = await fs.readFile(paths.logFile, 'utf8');
+    expect(log).toContain('MIGRATION: 1.1.1 →');
+    expect(log).not.toMatch(/MANUAL_EDIT:/);
+  });
+
   it('writes static html output to both local files', async () => {
     const { saveStaticSite } = await import('../src/data/store');
     const paths = await createTempPaths();
@@ -103,5 +120,98 @@ describe('store', () => {
     });
 
     expect(() => validateData({})).toThrow('boom');
+  });
+
+  it('self-heals stale parent rollups on load and logs the fix', async () => {
+    const { CURRENT_DATA_VERSION } = await import('../src/data/migrations');
+    const { loadData } = await import('../src/data/store');
+    const paths = await createTempPaths();
+    // Hand-craft a stale fixture: I1 is done/100 but M1 is stale (50/ongoing) and ROOT is stale (50/ongoing).
+    const data = createSampleData();
+    data.meta.version = CURRENT_DATA_VERSION;
+    data.tasks.I1.status = 'done';
+    data.tasks.I1.progress = 100;
+    data.tasks.M1.status = 'ongoing';
+    data.tasks.M1.progress = 50;
+    data.tasks.ROOT.status = 'ongoing';
+    data.tasks.ROOT.progress = 50;
+    await writeData(paths, data);
+
+    const healed = await loadData(paths);
+    expect(healed.tasks.M1.progress).toBe(100);
+    expect(healed.tasks.M1.status).toBe('done');
+    expect(healed.tasks.ROOT.progress).toBe(100);
+    expect(healed.tasks.ROOT.status).toBe('done');
+
+    const log = await fs.readFile(paths.logFile, 'utf8');
+    expect(log).toMatch(/HEAL: parent M1 → status=done, progress=100/);
+    expect(log).toMatch(/parent ROOT → status=done, progress=100/);
+    expect(log).toMatch(/auto-reconciled on load/);
+  });
+
+  it('does not log HEAL when loading already-correct data (idempotent)', async () => {
+    const { CURRENT_DATA_VERSION } = await import('../src/data/migrations');
+    const { loadData } = await import('../src/data/store');
+    const paths = await createTempPaths();
+    const data = createSampleData();
+    data.meta.version = CURRENT_DATA_VERSION;
+    await writeData(paths, data);
+
+    await loadData(paths);
+
+    // Either the log file does not exist (preferred — no writes happened) or it
+    // exists but contains no HEAL line. Both prove idempotency.
+    let log = '';
+    try {
+      log = await fs.readFile(paths.logFile, 'utf8');
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+    }
+    expect(log).not.toMatch(/HEAL:/);
+  });
+
+  it('warns MANUAL_EDIT when data.json mtime is newer than meta.lastUpdated', async () => {
+    const { CURRENT_DATA_VERSION } = await import('../src/data/migrations');
+    const { loadData } = await import('../src/data/store');
+    const paths = await createTempPaths();
+    const data = createSampleData();
+    data.meta.version = CURRENT_DATA_VERSION;
+    // Pretend the file was last written by the CLI an hour ago.
+    const anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    data.meta.lastUpdated = anHourAgo;
+    await writeData(paths, data);
+    // Then touch the file to "now" (an out-of-band edit).
+    const now = new Date();
+    await fs.utimes(paths.dataFile, now, now);
+
+    await loadData(paths);
+
+    const log = await fs.readFile(paths.logFile, 'utf8');
+    expect(log).toMatch(/MANUAL_EDIT: data\.json was modified after the last CLI write/);
+    expect(log).toMatch(/Use `milestr` CLI actions to mutate data\.json/);
+  });
+
+  it('does not warn MANUAL_EDIT when data.json mtime is older than meta.lastUpdated (normal CLI write)', async () => {
+    const { CURRENT_DATA_VERSION } = await import('../src/data/migrations');
+    const { loadData } = await import('../src/data/store');
+    const paths = await createTempPaths();
+    const data = createSampleData();
+    data.meta.version = CURRENT_DATA_VERSION;
+    // lastUpdated is in the future relative to a backdated file.
+    const tomorrow = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    data.meta.lastUpdated = tomorrow;
+    await writeData(paths, data);
+    const anHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    await fs.utimes(paths.dataFile, anHourAgo, anHourAgo);
+
+    await loadData(paths);
+
+    let log = '';
+    try {
+      log = await fs.readFile(paths.logFile, 'utf8');
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+    }
+    expect(log).not.toMatch(/MANUAL_EDIT:/);
   });
 });

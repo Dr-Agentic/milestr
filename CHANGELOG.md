@@ -28,6 +28,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Dashboard: every interactive feature was dead (tab switcher, tree view, detail drawer, theme toggle).**
+  The inline `<script>` block in the generated dashboard contained a JavaScript
+  syntax error and therefore failed to parse **as a whole**. Because it is a
+  single `<script>` element, the parse error killed every handler in it at
+  once — the KPI/Timeline/Tree/Kanban/List tab switcher never switched, the
+  tree never zoomed, the drawer never opened, and the theme toggle never
+  responded.
+  Root cause: v1.3.0 (`d98830e`) rebuilt the generator so the inline script
+  was assembled from single-quoted TypeScript string literals. In such a
+  literal, `\"` collapses to a bare `"`, so a line intended as
+  `'<span class="sep">/</span>'` was emitted as
+  `"<span class="sep">/</span>"` — an unterminated string literal. The
+  emitted JavaScript was invalid, so the browser discarded the entire block.
+  This shipped in `milestr@1.3.1` (npm, 2026-09-29) and has been live on the
+  published dashboard ever since.
+- **Tree breadcrumb never showed the focused node.** `zoomTo()` set
+  `path = ancestorsOf(id)`, which returns only the ancestors, so the focused
+  node was never appended. The last crumb was always missing and `Esc` popped
+  the focused node instead of its parent.
+- **`showView()` blanked the dashboard on an unknown view id.** It removed
+  `active` from every view *before* resolving the target, so a bad id left
+  the page with no visible view at all. The target is now resolved first.
+- **XSS in the tree breadcrumb.** Task titles were interpolated into
+  `innerHTML` without escaping, so a task title containing HTML was parsed as
+  markup. The breadcrumb, drawer subtitle, and drawer activity-log notes are
+  now escaped.
+
+### Added
+- **`src/ui/dashboardScript.ts`** — the dashboard's inline JavaScript now
+  lives in its own module as a plain template literal, where quotes need no
+  escaping at all. This removes the encoding trap that caused the outage.
+- **Export-time parse guard.** `exportDashboardHtml()` calls
+  `assertDashboardScriptParses()`, which throws with the parser message if the
+  inline script is ever malformed. A broken script can no longer be published
+  silently.
+- **`tests/dashboardInteraction.test.ts`** — 30 new tests that execute the
+  generated dashboard in a real DOM (jsdom) and assert on *behaviour*:
+  the script parses, the dashboard boots without throwing, every tab and
+  every tab pair actually switches the visible view, the tree toggle and
+  breadcrumb zoom work, the drawer opens and closes, the theme toggle
+  persists, and hostile task titles / subtitles / log notes are escaped
+  rather than executed. A meta-test feeds the exact v1.3.0 broken payload to
+  the guard to prove the guard is not vacuous.
+
+### Changed
+- **`tests/dashboardHtml.test.ts`** — three assertions that matched a specific
+  quote style (`'"Escape"'`, `'"milestr-theme"'`, `'addEventListener("scroll"'`)
+  are now quote-agnostic regexes. They previously passed against a script that
+  could not parse, which is how the outage shipped behind 122 green tests.
+- Test environment: added `jsdom` (and `@types/jsdom`) as a dev dependency.
+  The existing suite still runs under `environment: 'node'`; the new file
+  constructs its own jsdom instances.
+
 ### Notes
 - **Cascade quirk (deferred):** When a parent task is fully complete
   (`progress=100`, `status=done`) and a new child is added with
