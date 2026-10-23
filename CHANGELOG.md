@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detail activity log was capped at 5 entries in the tree card; now the full log is available via the drawer.
 - Pre-existing test flake in `tests/handlers.test.ts > "reports current value when --value is omitted"` asserted `mtime < 5ms` to detect "no rewrite." APFS mtime resolution is coarser than that threshold on most macOS configurations. Replaced with a byte-content comparison (`Buffer.compare`) and pre-loadData baseline so the test now reliably detects a no-mutation call regardless of filesystem timing.
 
-## [Unreleased]
+## [1.3.2] - 2026-10-23
 
 ### Fixed
 - **Dashboard: every interactive feature was dead (tab switcher, tree view, detail drawer, theme toggle).**
@@ -42,8 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `'<span class="sep">/</span>'` was emitted as
   `"<span class="sep">/</span>"` — an unterminated string literal. The
   emitted JavaScript was invalid, so the browser discarded the entire block.
-  This shipped in `milestr@1.3.1` (npm, 2026-09-29) and has been live on the
-  published dashboard ever since.
+  This shipped in `milestr@1.3.1` (npm, 2026-09-29) and had been live on the
+  published dashboards ever since. It is fixed here in the generator, so any
+  dashboard generated with 1.3.2 works.
 - **Tree breadcrumb never showed the focused node.** `zoomTo()` set
   `path = ancestorsOf(id)`, which returns only the ancestors, so the focused
   node was never appended. The last crumb was always missing and `Esc` popped
@@ -55,6 +56,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `innerHTML` without escaping, so a task title containing HTML was parsed as
   markup. The breadcrumb, drawer subtitle, and drawer activity-log notes are
   now escaped.
+- **Stale parent rollups after an out-of-band `data.json` edit.** If an agent
+  wrote `data.json` directly (bypassing the CLI), a parent's `progress` and
+  `status` could diverge from its children — e.g. all 29 children at 100% but
+  the milestone at 75%. `loadData()` now runs `healParentRollups()` on every
+  load and re-derives each parent's rollups from its children. Fixes are
+  logged as `HEAL:` lines in `dashboard.log`; a consistent file produces no
+  log line and no rewrite.
+- **Migration path missing for data stamped `1.1.1`.** The first migration
+  step's `from` list omitted `1.1.1`, so any dashboard written by
+  `milestr v1.1.1` failed to load with *"No migration path from data version
+  1.1.1"*. Note the error message says "Upgrade Milestr" but upgrading did not
+  help — v1.2.1 through v1.3.1 all shipped the same gap.
+- **Migration writes did not stamp `meta.lastUpdated`.** The manual-edit
+  drift detector consequently fired a false alarm on every load.
 
 ### Added
 - **`src/ui/dashboardScript.ts`** — the dashboard's inline JavaScript now
@@ -64,6 +79,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `assertDashboardScriptParses()`, which throws with the parser message if the
   inline script is ever malformed. A broken script can no longer be published
   silently.
+- **`healParentRollups()`** in `src/actions/utils.ts`, wired into
+  `loadData()`. Recomputes parent `progress` and `status` from children on
+  every load, idempotent on a consistent file.
+- **`scripts/hotfix_dashboard.mjs`** — repairs an already-published
+  `dashboard.html` in place by swapping the broken inline `<script>` for the
+  fixed one. Guards: only the first non-JSON `<script>` block is replaced; the
+  old script must *not* parse (otherwise it bails out as already-fixed); the
+  replacement is parsed before and after writing; a non-script diff is
+  verified empty.
 - **`tests/dashboardInteraction.test.ts`** — 30 new tests that execute the
   generated dashboard in a real DOM (jsdom) and assert on *behaviour*:
   the script parses, the dashboard boots without throwing, every tab and
@@ -81,6 +105,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test environment: added `jsdom` (and `@types/jsdom`) as a dev dependency.
   The existing suite still runs under `environment: 'node'`; the new file
   constructs its own jsdom instances.
+- `SKILL.md` documents the dashboard-script editing rules as pitfall #12 and
+  the "NEVER edit `data.json` by hand" rule as a prominent section.
+
+### Notes
+- **Cascade quirk (deferred):** When a parent task is fully complete
+  (`progress=100`, `status=done`) and a new child is added with
+  `progress=0`, the parent's `progress` recomputes to a lower number
+  (unweighted mean). The parent's `status` does not currently flip
+  back to `ongoing` unless a sibling is `ongoing` — only `not_started`.
+  Morsy's call: defer. The intended v1.2 behavior is that 100% is a
+  deliberate signal and must be reset by the agent (`status ... ongoing`
+  or `progress ... <100>`), not silently re-derived from children.
+  Tracked for the v1.2 actions release.
+- **`milestr migrate <subcommand>` CLI surface (CR-0001 §4.4, deferred):**
+  The version registry, loader hardening, pre-migration backups, and
+  `npm run check-migrations` gate all shipped in v1.2.1. The explicit
+  `status | dry-run | run | rollback` CLI subcommands listed in
+  `docs/CR-0001-data-version-migrations.md` §4.4 did not. Tracked for
+  the v1.3 release.
+
+## [Unreleased]
 
 ### Notes
 - **Cascade quirk (deferred):** When a parent task is fully complete
